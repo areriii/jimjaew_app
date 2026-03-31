@@ -1,14 +1,12 @@
 class RegisterParam {
   final String firstName;
   final String lastName;
-  final String studentId;
   final String email;
   final String password;
 
   RegisterParam({
     required this.firstName,
     required this.lastName,
-    required this.studentId,
     required this.email,
     required this.password,
   });
@@ -17,7 +15,6 @@ class RegisterParam {
     return RegisterParam(
       firstName: json['firstName'],
       lastName: json['lastName'],
-      studentId: json['studentId'],
       email: json['email'],
       password: json['password'],
     );

@@ -1,14 +1,9 @@
 import 'dart:async';
-
 import "package:http/http.dart" as http;
 import 'package:jimjaew_app/model/register_model.dart';
-
 import 'dart:convert';
-
 import '../model/login_model.dart';
 import '../model/profile_models.dart';
-
-
 
 class UserManager {
   static final UserManager _instance = UserManager._();
@@ -47,7 +42,6 @@ class UserManager {
   Future<RegisterResponse?> register(
       String firstName,
       String lastName,
-      String ,
       String email,
       String password
     ) async {
@@ -107,7 +101,7 @@ class UserManager {
       if (resp.statusCode != 200) {
         return LoginResponseModel(
           isSuccess: false, profileId: '',
-          message: 'Login failed '
+          message: 'login failed '
         );
       }
 
