@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:jimjaew_app/home_screen/shop_home_screen.dart';
 import 'login/login_screen.dart';
-
 
 void main() {
   runApp(const MyApp());
@@ -17,11 +17,10 @@ class MyApp extends StatelessWidget {
           colorScheme: .fromSeed(seedColor: Colors.blue),
         ),
         debugShowCheckedModeBanner: false,
-        home: LoginScreen()
+        home: ShopHomeScreen()
     );
   }
 }
-
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key, required this.profileId});
