@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jimjaew_app/model/product_model.dart';
 import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/home_screen/profile_screen.dart';
+import 'package:jimjaew_app/home_screen/all_products_screen.dart';
 
 class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
@@ -12,28 +14,66 @@ class ShopHomeScreen extends StatefulWidget {
 
 class _ShopHomeScreenState extends State<ShopHomeScreen> {
   int _selectedIndex = 0;
+  bool _isSearching = false;
 
-  // ข้อมูลหมวดหมู่
+  final TextEditingController _searchController = TextEditingController();
+
+  // null = ยังไม่ได้เลือก category
+  String? selectedCategory;
+
   final List<Map<String, dynamic>> categories = [
-    {"icon": Icons.checkroom_outlined, "label": "Shirt"},
-    {"icon": Icons.dry_cleaning_outlined, "label": "Pants"},
-    {"icon": Icons.visibility_outlined, "label": "Glasses"},
-    {"icon": Icons.shopping_bag_outlined, "label": "Shoes"},
-    {"icon": Icons.watch_outlined, "label": "Watch"},
-    {"icon": Icons.watch_later_outlined, "label": "Watch"},
+    {
+      "icon": "assets/icons/shirt-solid-full.svg",
+      "label": "Shirt",
+    },
+    {
+      "icon": "assets/icons/clothes.png",
+      "label": "Pants",
+    },
+    {
+      "icon": "assets/icons/glasses-solid-full.svg",
+      "label": "Glasses",
+    },
+    {
+      "icon": "assets/icons/socks-solid-full.svg",
+      "label": "Shoes",
+    },
+    {
+      "icon": "assets/icons/watch-solid-full.svg",
+      "label": "Watch",
+    },
   ];
 
-  // ข้อมูลสินค้า
   final List<Map<String, dynamic>> products = [
     {
-      "name": "Mens Shirt",
+      "name": "Gustavo Rosser",
+      "price": "Rs. 1000",
+      "rating": 3,
+      "favorite": false,
+      "image":
+      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800",
+      "description": "เสื้อเชิ้ตผู้ชาย ใส่สบาย เหมาะกับหลายโอกาส",
+      "category": "Shirt",
+    },
+    {
+      "name": "Hanna Dokidis",
       "price": "Rs. 1000",
       "rating": 3,
       "favorite": false,
       "image":
       "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=800",
-      "description":
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ullamcorper in non at egestas metus auctor ultricies phasellus senectus.",
+      "description": "เสื้อเชิ้ตแขนยาว เรียบ ๆ แมตช์ง่าย",
+      "category": "Shirt",
+    },
+    {
+      "name": "Original Tee",
+      "price": "Rs. 1000",
+      "rating": 3,
+      "favorite": false,
+      "image":
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
+      "description": "เสื้อยืดลำลอง ใส่ได้ทุกวัน",
+      "category": "Shirt",
     },
     {
       "name": "Trouser",
@@ -42,36 +82,133 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       "favorite": true,
       "image":
       "https://images.unsplash.com/photo-1506629905607-bb5b4b1fbad5?w=800",
-      "description":
-      "Trouser เนื้อผ้านุ่ม ใส่สบาย เหมาะกับการแต่งตัวได้หลายสไตล์ ทั้งลุคสบาย ๆ และลุคออกไปข้างนอก.",
+      "description": "กางเกงทรงสวย ใส่สบาย",
+      "category": "Pants",
     },
     {
-      "name": "Mens T-Shirt",
-      "price": "Rs. 1000",
-      "rating": 3,
+      "name": "Blue Jeans",
+      "price": "Rs. 2200",
+      "rating": 4,
       "favorite": false,
       "image":
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
-      "description":
-      "เสื้อยืดผู้ชายทรงสวย ใส่สบาย ระบายอากาศได้ดี เหมาะกับการใส่ทุกวัน.",
+      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800",
+      "description": "กางเกงยีนส์ทรงสวย",
+      "category": "Pants",
     },
     {
-      "name": "Full shirt",
-      "price": "Rs. 3000",
+      "name": "Classic Glasses",
+      "price": "Rs. 1800",
       "rating": 4,
+      "favorite": false,
+      "image":
+      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800",
+      "description": "แว่นตาทรงคลาสสิก",
+      "category": "Glasses",
+    },
+    {
+      "name": "Sport Shoes",
+      "price": "Rs. 3500",
+      "rating": 5,
       "favorite": true,
       "image":
-      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800",
-      "description":
-      "เสื้อเชิ้ตแขนยาวดีไซน์เรียบ ใส่ได้ทั้งแบบทางการและลำลอง แมตช์ง่ายมาก.",
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800",
+      "description": "รองเท้าสำหรับใส่เดินสบาย",
+      "category": "Shoes",
+    },
+    {
+      "name": "Silver Watch",
+      "price": "Rs. 4200",
+      "rating": 4,
+      "favorite": false,
+      "image":
+      "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800",
+      "description": "นาฬิกาดีไซน์เรียบหรู",
+      "category": "Watch",
     },
   ];
 
+  List<Map<String, dynamic>> get filteredProducts {
+    final query = _searchController.text.trim().toLowerCase();
+
+    return products.where((product) {
+      final name = (product["name"] ?? "").toString().toLowerCase();
+      final category = (product["category"] ?? "").toString();
+
+      final matchCategory =
+      selectedCategory == null ? true : category == selectedCategory;
+
+      final matchSearch = query.isEmpty || name.contains(query);
+
+      return matchCategory && matchSearch;
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildCategoryIcon(String iconPath, bool isSelected) {
+    return SvgPicture.asset(
+      iconPath,
+      width: 28,
+      height: 28,
+      colorFilter: ColorFilter.mode(
+        isSelected ? Colors.white : Colors.black87,
+        BlendMode.srcIn,
+      ),
+    );
+  }
+
+  Widget _buildCategoryItem(Map<String, dynamic> category) {
+    final bool isSelected = selectedCategory == category["label"];
+    final String iconPath = category["icon"] as String;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (selectedCategory == category["label"]) {
+            selectedCategory = null;
+          } else {
+            selectedCategory = category["label"];
+          }
+        });
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 62,
+            height: 62,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFF5B9DDB)
+                  : const Color(0xFFD8ECFF),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: _buildCategoryIcon(iconPath, isSelected),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            category["label"],
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    final displayProducts = filteredProducts;
 
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
@@ -103,7 +240,6 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           ),
         ],
       ),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -111,8 +247,6 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 18),
-
-              // search bar + profile
               Row(
                 children: [
                   Expanded(
@@ -120,27 +254,59 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                       height: 52,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
+                        color: const Color(0xFFEFEFEF),
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.search, color: Colors.grey),
-                          SizedBox(width: 10),
-                          Text(
-                            "Search for products",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
+                          const Icon(Icons.search, color: Colors.grey),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _isSearching
+                                ? TextField(
+                              controller: _searchController,
+                              autofocus: true,
+                              onChanged: (_) {
+                                setState(() {});
+                              },
+                              decoration: const InputDecoration(
+                                hintText: "Search for products",
+                                border: InputBorder.none,
+                              ),
+                            )
+                                : GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isSearching = true;
+                                });
+                              },
+                              child: const Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  "Search for products",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
+                          if (_isSearching)
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _isSearching = false;
+                                });
+                              },
+                              icon: const Icon(Icons.close, color: Colors.grey),
+                            ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(width: 14),
-
-                  // กดรูปโปรไฟล์แล้วไปหน้า Profile
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -159,9 +325,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 28),
-
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -174,9 +338,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
                       const SizedBox(height: 18),
-
                       SizedBox(
                         height: 95,
                         child: ListView.separated(
@@ -185,101 +347,103 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                           separatorBuilder: (_, __) =>
                           const SizedBox(width: 14),
                           itemBuilder: (context, index) {
-                            final category = categories[index];
-
-                            return Column(
-                              children: [
-                                Container(
-                                  width: 62,
-                                  height: 62,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFD8ECFF),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    category["icon"],
-                                    size: 28,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  category["label"],
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            );
+                            return _buildCategoryItem(categories[index]);
                           },
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text(
-                            "Latest Products",
-                            style: TextStyle(
+                            _searchController.text.isNotEmpty
+                                ? "Search Results"
+                                : selectedCategory ?? "Latest Products",
+                            style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
-                            "See all",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF6A9FD8),
-                              fontWeight: FontWeight.w600,
+                          if (_searchController.text.isEmpty)
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AllProductsScreen(
+                                      products: displayProducts,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                "See all",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Color(0xFF6A9FD8),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
-                          ),
                         ],
                       ),
-
                       const SizedBox(height: 18),
-
-                      GridView.builder(
-                        itemCount: products.length,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 18,
-                          mainAxisSpacing: 18,
-                          childAspectRatio: 0.58,
-                        ),
-                        itemBuilder: (context, index) {
-                          final product = products[index];
-
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ProductDetailScreen(
-                                    name: product["name"] ?? "",
-                                    price: product["price"] ?? "",
-                                    rating: product["rating"] ?? 0,
-                                    isFavorite: product["favorite"] ?? false,
-                                    imageUrl: product["image"] ?? "",
-                                    description: product["description"] ??
-                                        "No description available",
-                                  ),
-                                ),
-                              );
-                            },
-                            child: ProductCard(
-                              name: product["name"] ?? "",
-                              price: product["price"] ?? "",
-                              rating: product["rating"] ?? 0,
-                              isFavorite: product["favorite"] ?? false,
-                              imageUrl: product["image"] ?? "",
+                      if (displayProducts.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 40),
+                          child: Center(
+                            child: Text(
+                              "No products found",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        )
+                      else
+                        GridView.builder(
+                          itemCount: displayProducts.length,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 18,
+                            mainAxisSpacing: 18,
+                            childAspectRatio: 0.58,
+                          ),
+                          itemBuilder: (context, index) {
+                            final product = displayProducts[index];
 
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductDetailScreen(
+                                      name: product["name"] ?? "",
+                                      price: product["price"] ?? "",
+                                      rating: product["rating"] ?? 0,
+                                      isFavorite:
+                                      product["favorite"] ?? false,
+                                      imageUrl: product["image"] ?? "",
+                                      description: product["description"] ??
+                                          "No description available",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ProductCard(
+                                name: product["name"] ?? "",
+                                price: product["price"] ?? "",
+                                rating: product["rating"] ?? 0,
+                                isFavorite: product["favorite"] ?? false,
+                                imageUrl: product["image"] ?? "",
+                              ),
+                            );
+                          },
+                        ),
                       const SizedBox(height: 20),
                     ],
                   ),
