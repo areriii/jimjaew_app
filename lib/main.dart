@@ -1,8 +1,22 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/home_screen/shop_home_screen.dart';
+import 'firebase_options.dart';
 import 'login/login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+ // 🔴 ต้องนำเข้าไฟล์นี้ด้วย
+
+void main() async {
+  // 1. ต้องมีบรรทัดนี้เป็นอันดับแรก เพื่อให้ Flutter เตรียมตัวให้พร้อม
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // // 2. บรรทัดนี้คือการสตาร์ทเครื่อง Firebase (ที่ Error หน้าจอแดงมันถามหา)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // 3. สั่งรันแอปพลิเคชัน (แก้ชื่อให้ตรงกับคลาสข้างล่าง)
   runApp(const MyApp());
 }
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "864005716424",
+    "project_id": "jimjaew-app",
+    "storage_bucket": "jimjaew-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:864005716424:android:ba7c9409275a3d674f28fd",
+        "android_client_info": {
+          "package_name": "th.ac.bu.jimjaew_app.jimjaew_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY47PvQ4CU4rsJNxww8X_z8rVctOwQMcI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

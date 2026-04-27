@@ -5,6 +5,8 @@ import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/home_screen/profile_screen.dart';
 import 'package:jimjaew_app/home_screen/all_products_screen.dart';
 
+import '../products/shop_item_model.dart';
+
 class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
 
@@ -312,7 +314,10 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
+                          builder: (context) =>  ProfileScreen(
+                            username: 'Ari Natthanan',
+                            email: 'ari@email.com',
+                          ),
                         ),
                       );
                     },
@@ -420,18 +425,20 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProductDetailScreen(
-                                      name: product["name"] ?? "",
-                                      price: product["price"] ?? "",
-                                      rating: product["rating"] ?? 0,
-                                      isFavorite:
-                                      product["favorite"] ?? false,
-                                      imageUrl: product["image"] ?? "",
-                                      description: product["description"] ??
-                                          "No description available",
-                                    ),
-                                  ),
+                                    // 🔴 โค้ดใหม่ที่ถูกต้อง ✅
+                                    MaterialPageRoute(
+                                      builder: (context) => ProductDetailScreen(
+                                        // แพ็กข้อมูลใส่กล่อง ShopItemModel ก่อนส่ง
+                                        product: ShopItemModel(
+                                          id: 'mock_id', // ใส่ ID ชั่วคราวไปก่อน
+                                          name: product["name"] ?? "ไม่มีชื่อ",
+                                          // แปลงราคาจาก String ให้กลายเป็นตัวเลข (double)
+                                          price: double.tryParse(product["price"].toString()) ?? 0.0,
+                                          stock: 10, // ใส่สต็อกจำลอง
+                                          imagePath: null, // ใส่ null ไปก่อนเพื่อไม่ให้แอปแครชตอนพยายามโหลดรูปจากเน็ต
+                                        ),
+                                      ),
+                                    )
                                 );
                               },
                               child: ProductCard(

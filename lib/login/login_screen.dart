@@ -4,7 +4,7 @@ import 'package:jimjaew_app/components/app_logo.dart';
 import 'package:jimjaew_app/main.dart';
 import 'package:jimjaew_app/register/register_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatefulWidget {  //ทำไมใช้ StatefulWidget: เพราะหน้าจอนี้ "มีการเปลี่ยนแปลง" (Dynamic) ครับ เช่น ตอนผู้ใช้กดปุ่ม หน้าจอต้องเปลี่ยนจากฟอร์มกรอกข้อมูล กลายเป็นโชว์ไอคอนกำลังโหลดหมุนๆ (CircularProgressIndicator) ถ้าใช้ StatelessWidget มันจะเปลี่ยนหน้าตาแบบนี้ไม่ได้ครับ
   const LoginScreen({super.key});
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _userManager = UserManager();  // ตัวเรียก API login
 
-  Future<void>? _loginResult;  // ใช้เก็บสถานะ login (เอาไปใช้กับ FutureBuilder)
+  Future<void>? _loginResult;
 
   Future<void> _login(String email, String password) async {
     // ยิง API
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
-      body: FutureBuilder(
+      body: FutureBuilder(  //ว่าตอนนี้สถานะคือ waiting (รอ) หรือเสร็จแล้ว ทำให้เราโชว์วงกลมโหลดรอ (CircularProgressIndicator)
         future: _loginResult,
         builder: (context, snapshot) {
           // ถ้ากำลัง login แสดง loading
@@ -122,12 +122,12 @@ class _LoginScreenState extends State<LoginScreen> {
           }
 
           return SafeArea(
-            child: SingleChildScrollView(
+            child: SingleChildScrollView( //คือ "Bottom Overflowed" (แถบสีเหลืองดำคาดหน้าจอ) เวลาผู้ใช้กดพิมพ์ข้อความแล้ว "คีย์บอร์ดมือถือเด้งขึ้นมาบังจอ"
               child: SizedBox(
                 height: MediaQuery.of(context).size.height,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 22),
-                  child: Form(
+                  child: Form( //เป็นการเอาเครื่องข่าย (Form) ไปคลุมกล่องข้อความไว้ เพื่อให้มันทำงานร่วมกับ _formKey ที่เราสร้างไว้ข้างบนได้
                     key: _formKey,
                     child: Column(
                       children: [
@@ -164,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // ช่อง password
                         TextFormField(
                           controller: _passwordController,
-                          obscureText: true, // ซ่อนรหัส
+                          obscureText: true, // ซ่อนรหัส  จุดกลมๆ
                           decoration: customInputDecoration(
                             hintText: "password",
                             icon: Icons.lock,
@@ -187,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               // เช็คก่อนว่ากรอกครบมั้ย
                               if (_formKey.currentState!.validate()) {
                                 // เรียก login
-                                setState(() {
+                                setState(() { //setState คือการตะโกนบอกแอปว่า "ข้อมูลเปลี่ยนแล้วนะ วาดหน้าจอใหม่เดี๋ยวนี้!"
                                   _loginResult = _login(
                                     _emailController.text.trim(),
                                     _passwordController.text.trim(),
