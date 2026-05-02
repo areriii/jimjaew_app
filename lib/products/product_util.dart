@@ -26,7 +26,19 @@ Widget productInGrid(List<ShopItemModel> products) {
       return GestureDetector(
         // หมายเหตุ: หากหน้า ProductDetailScreen ยังรับค่าเป็น ProductModel ตัวเก่าอยู่
         // คุณอาจจะต้องเข้าไปแก้ในหน้านั้นให้รับค่าเป็น ShopItemModel ด้วยนะครับ
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailScreen(product: item))),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(
+              name: item.name,
+              price: "${item.price} THB",
+              rating: 0, // ใส่ default ไปก่อน
+              isFavorite: false,
+              imageUrl: item.imagePath ?? "",
+              description: "No description",
+            ),
+          ),
+        ),
         child: Card(
           clipBehavior: Clip.antiAlias,
           child: Column(

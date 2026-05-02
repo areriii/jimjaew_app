@@ -6,6 +6,7 @@ class ProductCard extends StatelessWidget {
   final int rating;
   final bool isFavorite;
   final String imageUrl;
+  final VoidCallback onFavoriteToggle;
 
   const ProductCard({
     super.key,
@@ -14,6 +15,7 @@ class ProductCard extends StatelessWidget {
     required this.rating,
     required this.isFavorite,
     required this.imageUrl,
+    required this.onFavoriteToggle,
   });
 
   @override
@@ -47,10 +49,13 @@ class ProductCard extends StatelessWidget {
               Positioned(
                 top: 10,
                 right: 10,
-                child: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : Colors.black87,
-                  size: 24,
+                child: GestureDetector(
+                  onTap: onFavoriteToggle,
+                  child: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.black87,
+                    size: 24,
+                  ),
                 ),
               ),
             ],

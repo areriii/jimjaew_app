@@ -43,15 +43,12 @@ class AllProductsScreen extends StatelessWidget {
                     // 🔴 โค้ดใหม่ที่ถูกต้อง ✅
                     MaterialPageRoute(
                       builder: (context) => ProductDetailScreen(
-                        // แพ็กข้อมูลใส่กล่อง ShopItemModel ก่อนส่ง
-                        product: ShopItemModel(
-                          id: 'mock_id', // ใส่ ID ชั่วคราวไปก่อน
-                          name: product["name"] ?? "ไม่มีชื่อ",
-                          // แปลงราคาจาก String ให้กลายเป็นตัวเลข (double)
-                          price: double.tryParse(product["price"].toString()) ?? 0.0,
-                          stock: 10, // ใส่สต็อกจำลอง
-                          imagePath: null, // ใส่ null ไปก่อนเพื่อไม่ให้แอปแครชตอนพยายามโหลดรูปจากเน็ต
-                        ),
+                        name: product["name"] ?? "",
+                        price: product["price"] ?? "",
+                        rating: product["rating"] ?? 0,
+                        isFavorite: product["favorite"] ?? false,
+                        imageUrl: product["image"] ?? "",
+                        description: product["description"] ?? "",
                       ),
                     )
                 );
@@ -62,6 +59,10 @@ class AllProductsScreen extends StatelessWidget {
                 rating: product["rating"] ?? 0,
                 isFavorite: product["favorite"] ?? false,
                 imageUrl: product["image"] ?? "",
+
+                onFavoriteToggle: () {
+                  product["favorite"] = !(product["favorite"] ?? false);
+                },
               ),
             );
           },

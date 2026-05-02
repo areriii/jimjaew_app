@@ -5,8 +5,6 @@ import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/home_screen/profile_screen.dart';
 import 'package:jimjaew_app/home_screen/all_products_screen.dart';
 
-import '../products/shop_item_model.dart';
-
 class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
 
@@ -29,7 +27,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       "label": "Shirt",
     },
     {
-      "icon": "assets/icons/clothes.png",
+      "icon": "assets/icons/pants-svgrepo-com.svg",
       "label": "Pants",
     },
     {
@@ -207,10 +205,9 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final displayProducts = filteredProducts;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+      body: _buildBody(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
@@ -242,222 +239,285 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 52,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFEFEF),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.search, color: Colors.grey),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _isSearching
-                                ? TextField(
-                              controller: _searchController,
-                              autofocus: true,
-                              onChanged: (_) {
-                                setState(() {});
-                              },
-                              decoration: const InputDecoration(
-                                hintText: "Search for products",
-                                border: InputBorder.none,
-                              ),
-                            )
-                                : GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isSearching = true;
-                                });
-                              },
-                              child: const Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  "Search for products",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (_isSearching)
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _searchController.clear();
-                                  _isSearching = false;
-                                });
-                              },
-                              icon: const Icon(Icons.close, color: Colors.grey),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>  ProfileScreen(
-                            username: 'Ari Natthanan',
-                            email: 'ari@email.com',
-                          ),
-                        ),
-                      );
-                    },
-                    child: const CircleAvatar(
-                      radius: 24,
-                      backgroundImage: NetworkImage(
-                        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300",
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Categories",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        height: 95,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: categories.length,
-                          separatorBuilder: (_, __) =>
-                          const SizedBox(width: 14),
-                          itemBuilder: (context, index) {
-                            return _buildCategoryItem(categories[index]);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _searchController.text.isNotEmpty
-                                ? "Search Results"
-                                : selectedCategory ?? "Latest Products",
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (_searchController.text.isEmpty)
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AllProductsScreen(
-                                      products: displayProducts,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                "See all",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF6A9FD8),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      if (displayProducts.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 40),
-                          child: Center(
-                            child: Text(
-                              "No products found",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                        )
-                      else
-                        GridView.builder(
-                          itemCount: displayProducts.length,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 18,
-                            mainAxisSpacing: 18,
-                            childAspectRatio: 0.58,
-                          ),
-                          itemBuilder: (context, index) {
-                            final product = displayProducts[index];
+    );
+  }
 
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                    // 🔴 โค้ดใหม่ที่ถูกต้อง ✅
-                                    MaterialPageRoute(
-                                      builder: (context) => ProductDetailScreen(
-                                        // แพ็กข้อมูลใส่กล่อง ShopItemModel ก่อนส่ง
-                                        product: ShopItemModel(
-                                          id: 'mock_id', // ใส่ ID ชั่วคราวไปก่อน
-                                          name: product["name"] ?? "ไม่มีชื่อ",
-                                          // แปลงราคาจาก String ให้กลายเป็นตัวเลข (double)
-                                          price: double.tryParse(product["price"].toString()) ?? 0.0,
-                                          stock: 10, // ใส่สต็อกจำลอง
-                                          imagePath: null, // ใส่ null ไปก่อนเพื่อไม่ให้แอปแครชตอนพยายามโหลดรูปจากเน็ต
-                                        ),
-                                      ),
-                                    )
-                                );
-                              },
-                              child: ProductCard(
-                                name: product["name"] ?? "",
-                                price: product["price"] ?? "",
-                                rating: product["rating"] ?? 0,
-                                isFavorite: product["favorite"] ?? false,
-                                imageUrl: product["image"] ?? "",
+  Widget _buildBody() {
+    if (_selectedIndex == 0) {
+      return _buildHomePage();
+    } else if (_selectedIndex == 1) {
+      return _buildCategoryPage();
+    } else if (_selectedIndex == 2) {
+      return _buildFavoritePage();
+    } else {
+      return _buildCartPage();
+    }
+  }
+
+  Widget _buildHomePage() {
+    final displayProducts = filteredProducts;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 18),
+
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 52,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFEFEF),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.search, color: Colors.grey),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _isSearching
+                              ? TextField(
+                            controller: _searchController,
+                            autofocus: true,
+                            onChanged: (_) {
+                              setState(() {});
+                            },
+                            decoration: const InputDecoration(
+                              hintText: "Search for products",
+                              border: InputBorder.none,
+                            ),
+                          )
+                              : GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _isSearching = true;
+                              });
+                            },
+                            child: const Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "Search for products",
+                                style: TextStyle(color: Colors.grey),
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         ),
-                      const SizedBox(height: 20),
-                    ],
+                        if (_isSearching)
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _searchController.clear();
+                                _isSearching = false;
+                              });
+                            },
+                            icon: const Icon(Icons.close),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
+                const SizedBox(width: 14),
+
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                        const ProfileScreen(username: '', email: ''),
+                      ),
+                    );
+                  },
+                  child: const CircleAvatar(
+                    radius: 24,
+                    backgroundImage: NetworkImage(
+                      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300",
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 28),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Latest Products",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AllProductsScreen(
+                          products: displayProducts,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "See all",
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            const Text(
+              "Categories",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 10),
+
+            SizedBox(
+              height: 90,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: categories.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  return _buildCategoryItem(categories[index]);
+                },
               ),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: 20),
+
+            Expanded(
+              child: GridView.builder(
+                itemCount: displayProducts.length,
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 18,
+                  mainAxisSpacing: 18,
+                  childAspectRatio: 0.58,
+                ),
+                itemBuilder: (context, index) {
+                  final product = displayProducts[index];
+
+                  return GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ProductDetailScreen(
+                                name: product["name"],
+                                price: product["price"],
+                                rating: product["rating"],
+                                isFavorite: product["favorite"],
+                                imageUrl: product["image"],
+                                description: product["description"],
+                              ),
+                        ),
+                      );
+
+                      if (result != null) {
+                        setState(() {
+                          product["favorite"] = result;
+                        });
+                      }
+                    },
+                    child: ProductCard(
+                      name: product["name"],
+                      price: product["price"],
+                      rating: product["rating"],
+                      isFavorite: product["favorite"],
+                      imageUrl: product["image"],
+                      onFavoriteToggle: () {
+                        setState(() {
+                          product["favorite"] =
+                          !(product["favorite"] ?? false);
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryPage() {
+    return const Center(child: Text("Category Page"));
+  }
+
+  Widget _buildCartPage() {
+    return const Center(child: Text("Cart Page"));
+  }
+
+  Widget _buildFavoritePage() {
+    final favoriteProducts =
+    products.where((p) => p["favorite"] == true).toList();
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            const Text(
+              "Favorite",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            if (favoriteProducts.isEmpty)
+              const Expanded(
+                child: Center(
+                  child: Text("No favorite items"),
+                ),
+              )
+            else
+
+              Expanded(
+                child: GridView.builder(
+                  itemCount: favoriteProducts.length,
+                  gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 18,
+                    mainAxisSpacing: 18,
+                    childAspectRatio: 0.58,
+                  ),
+                  itemBuilder: (context, index) {
+                    final product = favoriteProducts[index];
+
+                    return ProductCard(
+                      name: product["name"],
+                      price: product["price"],
+                      rating: product["rating"],
+                      isFavorite: product["favorite"],
+                      imageUrl: product["image"],
+                      onFavoriteToggle: () {
+                        setState(() {
+                          product["favorite"] = false;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+          ],
         ),
       ),
     );

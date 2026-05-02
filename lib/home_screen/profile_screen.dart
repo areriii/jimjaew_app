@@ -5,8 +5,6 @@ import 'package:jimjaew_app/home_screen/product_link_screen.dart';
 import 'package:jimjaew_app/home_screen/referral_screen.dart';
 import 'package:jimjaew_app/home_screen/shop_screen.dart';
 
-
-
 void main() {
   runApp(const MyApp());
 }
