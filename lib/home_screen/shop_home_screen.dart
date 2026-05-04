@@ -267,6 +267,16 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
 
             Row(
               children: [
+                if (_isSearching)
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      setState(() {
+                        _searchController.clear();
+                        _isSearching = false;
+                      });
+                    },
+                  ),
                 Expanded(
                   child: Container(
                     height: 52,
@@ -344,57 +354,73 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             ),
 
             const SizedBox(height: 28),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Latest Products",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AllProductsScreen(
-                          products: displayProducts,
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "See all",
-                    style: TextStyle(color: Colors.blue),
+
+            if (selectedCategory == null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _searchController.text.isNotEmpty
+                        ? "Search Results"
+                        : "Latest Products",
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+
+                // 🔥 แสดง See all เฉพาะตอน "ไม่ได้ search"
+                if (_searchController.text.isEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AllProductsScreen(
+                            products: filteredProducts,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "See all",
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ),
               ],
             ),
 
             const SizedBox(height: 16),
 
-            const Text(
-              "Categories",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 10),
-
-            SizedBox(
-              height: 90,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  return _buildCategoryItem(categories[index]);
-                },
+            if (!_isSearching && _searchController.text.isEmpty) ...[
+              const Text(
+                "Categories",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-            ),
-
-            const SizedBox(height: 20),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 90,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: categories.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    return _buildCategoryItem(categories[index]);
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
 
             Expanded(
-              child: GridView.builder(
+              child: displayProducts.isEmpty
+                 ? const Center(
+                      child: Text(
+                        "No products found",
+                     style: TextStyle(color: Colors.grey),
+                    ),
+                  )
+            : GridView.builder(
                 itemCount: displayProducts.length,
                 gridDelegate:
                 const SliverGridDelegateWithFixedCrossAxisCount(

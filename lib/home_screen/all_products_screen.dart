@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:jimjaew_app/model/product_model.dart';
 import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 
-import '../products/shop_item_model.dart';
-
 class AllProductsScreen extends StatelessWidget {
   final List<Map<String, dynamic>> products;
 
@@ -22,6 +20,13 @@ class AllProductsScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
