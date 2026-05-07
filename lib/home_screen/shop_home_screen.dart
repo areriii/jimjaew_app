@@ -4,6 +4,7 @@ import 'package:jimjaew_app/model/product_model.dart';
 import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/home_screen/profile_screen.dart';
 import 'package:jimjaew_app/home_screen/all_products_screen.dart';
+import 'category_screen.dart';
 
 class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
@@ -246,13 +247,32 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     if (_selectedIndex == 0) {
       return _buildHomePage();
     } else if (_selectedIndex == 1) {
-      return _buildCategoryPage();
+      Future.microtask(() {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CategoryScreen(
+              categories: categories,
+              products: products,
+              selectedCategory: selectedCategory,
+              onCategorySelect: (value) {
+                setState(() {
+                  selectedCategory = value.isEmpty ? null : value;
+                });
+              },
+            ),
+          ),
+        );
+      });
+      return _buildHomePage(); // 👈 สำคัญ
+
     } else if (_selectedIndex == 2) {
       return _buildFavoritePage();
     } else {
       return _buildCartPage();
     }
   }
+
 
   Widget _buildHomePage() {
     final displayProducts = filteredProducts;
@@ -355,40 +375,41 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
 
             const SizedBox(height: 28),
 
-            if (selectedCategory == null)
+            // 🔥 แสดง header เฉพาะ Search และ Category เท่านั้น
+            if (_isSearching || _searchController.text.isNotEmpty || selectedCategory != null)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _searchController.text.isNotEmpty
-                        ? "Search Results"
-                        : "Latest Products",
+                    selectedCategory != null
+                        ? selectedCategory!
+                        : "Search Results",
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
 
-                // 🔥 แสดง See all เฉพาะตอน "ไม่ได้ search"
-                if (_searchController.text.isEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AllProductsScreen(
-                            products: filteredProducts,
+                  // 🔥 แสดง See all เฉพาะ Search เท่านั้น
+                  if (selectedCategory == null)
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AllProductsScreen(
+                              products: filteredProducts,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      "See all",
-                      style: TextStyle(color: Colors.blue),
+                        );
+                      },
+                      child: const Text(
+                        "See all",
+                        style: TextStyle(color: Colors.blue),
+                      ),
                     ),
-                  ),
-              ],
-            ),
+                ],
+              ),
 
             const SizedBox(height: 16),
 
@@ -398,6 +419,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
+
               SizedBox(
                 height: 90,
                 child: ListView.separated(
@@ -409,6 +431,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                   },
                 ),
               ),
+
               const SizedBox(height: 20),
             ],
 
@@ -476,10 +499,6 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         ),
       ),
     );
-  }
-
-  Widget _buildCategoryPage() {
-    return const Center(child: Text("Category Page"));
   }
 
   Widget _buildCartPage() {
