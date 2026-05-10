@@ -24,7 +24,7 @@ class ProductCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          height: 170,
+          height: 140,
           width: double.infinity,
           decoration: BoxDecoration(
             color: const Color(0xFFF1F1F1),
@@ -64,6 +64,8 @@ class ProductCard extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,

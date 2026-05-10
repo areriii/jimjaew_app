@@ -216,11 +216,34 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        onTap: (index) {
+        onTap: (index) async {
+
+          // กันกด tab เดิมซ้ำ
+          if (_selectedIndex == index) return;
+
+          if (index == 1) {
+            _selectedIndex = index;
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CategoryScreen(
+                  categories: categories,
+                  products: products,
+                  selectedCategory: null,
+                  onCategorySelect: (_) {},
+                ),
+              ),
+            );
+            setState(() {
+              _selectedIndex = 0;
+            });
+            return;
+          }
           setState(() {
             _selectedIndex = index;
           });
         },
+
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_filled),
@@ -247,25 +270,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     if (_selectedIndex == 0) {
       return _buildHomePage();
     } else if (_selectedIndex == 1) {
-      Future.microtask(() {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CategoryScreen(
-              categories: categories,
-              products: products,
-              selectedCategory: selectedCategory,
-              onCategorySelect: (value) {
-                setState(() {
-                  selectedCategory = value.isEmpty ? null : value;
-                });
-              },
-            ),
-          ),
-        );
-      });
-      return _buildHomePage(); // 👈 สำคัญ
-
+      return _buildHomePage();
     } else if (_selectedIndex == 2) {
       return _buildFavoritePage();
     } else {
@@ -376,14 +381,12 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             const SizedBox(height: 28),
 
             // 🔥 แสดง header เฉพาะ Search และ Category เท่านั้น
-            if (_isSearching || _searchController.text.isNotEmpty || selectedCategory != null)
+            if (_isSearching || _searchController.text.isNotEmpty)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    selectedCategory != null
-                        ? selectedCategory!
-                        : "Search Results",
+                    "Search Results",
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
