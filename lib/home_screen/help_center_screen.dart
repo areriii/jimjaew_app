@@ -1,4 +1,6 @@
 // ศูนย์ช่วยเหลือ
+// หน้านี้ใช้สำหรับแสดงช่องทางการติดต่อ และคำถามที่พบบ่อยของแอป
+// คอมเมนต์เป็นภาษาไทย ส่วนข้อความที่แสดงในแอปเป็นภาษาอังกฤษทั้งหมด
 
 import 'package:flutter/material.dart';
 
@@ -9,11 +11,15 @@ class HelpCenterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+
+      // AppBar ด้านบนของหน้าศูนย์ช่วยเหลือ
       appBar: AppBar(
-        title: const Text('ศูนย์ช่วยเหลือ'),
+        title: const Text('Help Center'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
+
+      // เนื้อหาหลักของหน้า ใช้ ListView เพื่อให้เลื่อนดูข้อมูลได้
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -23,94 +29,190 @@ class HelpCenterScreen extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.only(bottom: 12.0),
             child: Text(
-              "ช่องทางการติดต่อ",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+              "Contact Channels",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ),
-          _buildContactCard(Icons.headset_mic, 'ติดต่อเจ้าหน้าที่ (Live Chat)', 'ให้บริการ 09:00 - 18:00 น.', Colors.blue),
-          _buildContactCard(Icons.phone, 'โทรสายด่วน (Call Center)', '02-XXX-XXXX', Colors.green),
-          _buildContactCard(Icons.email, 'ส่งอีเมลหาเรา', 'support@jimjaew.com', Colors.orange),
+
+          // การ์ดช่องทางติดต่อเจ้าหน้าที่ผ่าน Live Chat
+          _buildContactCard(
+            Icons.headset_mic,
+            'Live Chat Support',
+            'Available from 09:00 AM - 06:00 PM',
+            Colors.blue,
+          ),
+
+          // การ์ดช่องทางติดต่อผ่าน Call Center
+          _buildContactCard(
+            Icons.phone,
+            'Call Center',
+            '02-XXX-XXXX',
+            Colors.green,
+          ),
+
+          // การ์ดช่องทางติดต่อผ่านอีเมล
+          _buildContactCard(
+            Icons.email,
+            'Email Support',
+            'support@jimjaew.com',
+            Colors.orange,
+          ),
 
           const SizedBox(height: 24),
 
           // ---------------------------------------------
-          // ส่วนที่ 2: คำถามที่พบบ่อย (FAQ)
+          // ส่วนที่ 2: คำถามที่พบบ่อย
           // ---------------------------------------------
           const Padding(
             padding: EdgeInsets.only(bottom: 12.0),
             child: Text(
-              "คำถามที่พบบ่อย (FAQ)",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+              "Frequently Asked Questions",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ),
 
-          // โค้ดคำถาม-คำตอบ (พอกดแล้วจะสไลด์ข้อความลงมา)
+          // คำถามที่ 1: วิธีสั่งซื้อสินค้า
           _buildFAQTile(
-            'ฉันจะสั่งซื้อสินค้าได้อย่างไร?',
-            'คุณสามารถเลือกสินค้าที่ต้องการ กดปุ่ม "ซื้อสินค้า" สีฟ้าด้านล่าง แล้วระบบจะนำคุณไปสู่ขั้นตอนการชำระเงินครับ',
+            'How can I place an order?',
+            'You can select the product you want, tap the "Buy Now" button, and the system will process your purchase.',
           ),
+
+          // คำถามที่ 2: การยกเลิกคำสั่งซื้อ
           _buildFAQTile(
-            'สามารถยกเลิกคำสั่งซื้อได้ไหม?',
-            'ได้ครับ! หากสินค้าของคุณยังอยู่ในสถานะ "อยู่ระหว่างการส่ง" คุณสามารถไปที่เมนู "คำสั่งซื้อของฉัน" แล้วกดปุ่มยกเลิกสีแดงได้เลยครับ',
+            'Can I cancel my order?',
+            'Yes. If your order is still in the "In Delivery" status, you can go to "My Orders" and tap the cancel button.',
           ),
+
+          // คำถามที่ 3: ระยะเวลาจัดส่ง
           _buildFAQTile(
-            'ใช้เวลาจัดส่งกี่วัน?',
-            'โดยปกติทางร้านจะใช้เวลาจัดส่งประมาณ 2-3 วันทำการ ขึ้นอยู่กับพื้นที่ของลูกค้าครับ',
+            'How long does delivery take?',
+            'Delivery usually takes around 2-3 business days, depending on the customer location.',
           ),
+
+          // คำถามที่ 4: การได้รับเงินจากการขายสินค้า
           _buildFAQTile(
-            'ฉันจะได้รับเงินค่าขายสินค้าตอนไหน?',
-            'รายได้จะเข้าสู่ระบบ "รายได้ของร้าน" ก็ต่อเมื่อลูกค้าได้รับของและกดปุ่ม "ฉันได้รับสินค้าแล้ว" สีเขียวเท่านั้นครับ',
+            'When will I receive my sales income?',
+            'Your income will appear in "Store Income" after the customer confirms that they have received the product.',
           ),
+
+          // คำถามที่ 5: การเปลี่ยนรูปโปรไฟล์
           _buildFAQTile(
-            'จะเปลี่ยนรูปโปรไฟล์ต้องทำอย่างไร?',
-            'ขณะนี้แอปของเรากำลังพัฒนาระบบแก้ไขโปรไฟล์อยู่ อดใจรอการอัปเดตในเวอร์ชันหน้านะครับ!',
+            'How can I change my profile picture?',
+            'The profile editing feature is currently under development. Please wait for the next app update.',
           ),
         ],
       ),
     );
   }
 
-  // 🌟 ฟังก์ชันสำหรับวาดกล่อง "ช่องทางการติดต่อ"
-  Widget _buildContactCard(IconData icon, String title, String subtitle, Color iconColor) {
+  // ฟังก์ชันสำหรับสร้างการ์ดช่องทางการติดต่อ
+  Widget _buildContactCard(
+      IconData icon,
+      String title,
+      String subtitle,
+      Color iconColor,
+      ) {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 8),
       color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+
+      // รายละเอียดภายในการ์ดช่องทางติดต่อ
       child: ListTile(
+        // ไอคอนด้านซ้ายของช่องทางติดต่อ
         leading: CircleAvatar(
           backgroundColor: iconColor.withOpacity(0.1),
-          child: Icon(icon, color: iconColor),
+          child: Icon(
+            icon,
+            color: iconColor,
+          ),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+
+        // ชื่อช่องทางติดต่อ
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+
+        // รายละเอียดช่องทางติดต่อ
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.grey,
+          ),
+        ),
+
+        // ไอคอนลูกศรด้านขวา
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: Colors.grey,
+        ),
+
         onTap: () {
-          // 💡 ตรงนี้ในอนาคตเราสามารถใส่โค้ดเพื่อให้มือถือเด้งเปิดแอปโทรศัพท์ หรือแอปแชทได้ครับ
+          // ในอนาคตสามารถเพิ่ม logic เปิดแอปโทรศัพท์ อีเมล หรือแชทได้ตรงนี้
         },
       ),
     );
   }
 
-  // 🌟 ฟังก์ชันสำหรับวาดกล่อง "คำถามที่พบบ่อย" (เลื่อนเปิด/ปิดได้)
-  Widget _buildFAQTile(String question, String answer) {
+  // ฟังก์ชันสำหรับสร้างกล่องคำถามที่พบบ่อย
+  // ใช้ ExpansionTile เพื่อให้ผู้ใช้กดเปิด/ปิดคำตอบได้
+  Widget _buildFAQTile(
+      String question,
+      String answer,
+      ) {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 8),
       color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+
+      // กล่องคำถามแบบกดขยายคำตอบได้
       child: ExpansionTile(
-        title: Text(question, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        title: Text(
+          question,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
         iconColor: Colors.blue,
+
+        // ส่วนคำตอบที่จะแสดงเมื่อกดเปิด
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+            padding: const EdgeInsets.only(
+              left: 16.0,
+              right: 16.0,
+              bottom: 16.0,
+            ),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     answer,
-                    style: TextStyle(color: Colors.grey.shade700, height: 1.5, fontSize: 13),
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      height: 1.5,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],

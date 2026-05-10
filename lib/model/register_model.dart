@@ -1,36 +1,28 @@
-class RegisterParam {
-  final String firstName;
-  final String lastName;
-  final String email;
-  final String password;
-
-  RegisterParam({
-    required this.firstName,
-    required this.lastName,
-    required this.email,
-    required this.password,
-  });
-
-  factory RegisterParam.fromJson(Map<String, dynamic> json) {
-    return RegisterParam(
-      firstName: json['firstName'],
-      lastName: json['lastName'],
-      email: json['email'],
-      password: json['password'],
-    );
-  }
-}
+// โมเดลสำหรับรับผลลัพธ์จาก API สมัครสมาชิก
+// ใช้เก็บสถานะว่าสมัครสำเร็จหรือไม่ และข้อความจาก server
 
 class RegisterResponse {
   final bool isSuccess;
   final String message;
 
-  RegisterResponse({required this.isSuccess, required this.message});
+  RegisterResponse({
+    required this.isSuccess,
+    required this.message,
+  });
 
+  // แปลงข้อมูล JSON จาก API ให้เป็น RegisterResponse
   factory RegisterResponse.fromJson(Map<String, dynamic> json) {
     return RegisterResponse(
-      isSuccess: json['is_success'],
-      message: json['message'],
+      // รองรับหลายชื่อ field เผื่อ API ส่งชื่อไม่เหมือนกัน
+      isSuccess: json['isSuccess'] == true ||
+          json['success'] == true ||
+          json['status'] == true,
+
+      // กัน error กรณี message เป็น null หรือไม่มี field message
+      message: json['message']?.toString() ??
+          json['msg']?.toString() ??
+          json['error']?.toString() ??
+          'No message from server',
     );
   }
 }

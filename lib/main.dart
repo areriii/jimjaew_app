@@ -1,43 +1,57 @@
+// ไฟล์ main.dart
+// ไฟล์นี้เป็นจุดเริ่มต้นของแอป
+// ใช้สำหรับ initialize Firebase และเปิดหน้า ShopHomeScreen เป็นหน้าแรก
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:jimjaew_app/home_screen/shop_home_screen.dart';
-import 'firebase_options.dart';
-import 'login/login_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
 
- // 🔴 ต้องนำเข้าไฟล์นี้ด้วย
+import 'firebase_options.dart';
+import 'package:jimjaew_app/home_screen/shop_home_screen.dart';
+import 'package:jimjaew_app/home_screen/profile_screen.dart';
 
 void main() async {
-  // 1. ต้องมีบรรทัดนี้เป็นอันดับแรก เพื่อให้ Flutter เตรียมตัวให้พร้อม
+  // ต้องเรียกบรรทัดนี้ก่อน initialize Firebase
   WidgetsFlutterBinding.ensureInitialized();
 
-  // // 2. บรรทัดนี้คือการสตาร์ทเครื่อง Firebase (ที่ Error หน้าจอแดงมันถามหา)
+  // เริ่มต้นการทำงานของ Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 3. สั่งรันแอปพลิเคชัน (แก้ชื่อให้ตรงกับคลาสข้างล่าง)
+  // เริ่มรันแอป
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  // Widget หลักของแอป
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData(
-          colorScheme: .fromSeed(seedColor: Colors.blue),
+      debugShowCheckedModeBanner: false,
+
+      // ตั้งค่า Theme หลักของแอป
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
         ),
-        debugShowCheckedModeBanner: false,
-        home: ShopHomeScreen()
+        useMaterial3: true,
+      ),
+
+      // หน้าแรกของแอป
+      home: const ShopHomeScreen(),
     );
   }
 }
 
+// หน้าหลักแบบมี BottomNavigationBar
+// ถ้ายังไม่ได้ใช้ สามารถปล่อยไว้ได้ แต่ต้องห้ามให้ _pages ว่าง
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key, required this.profileId});
+  const MainScreen({
+    super.key,
+    required this.profileId,
+  });
 
   final String profileId;
 
@@ -46,29 +60,41 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  // index ของเมนูด้านล่างที่เลือกอยู่
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
+  // รายการหน้าที่จะแสดงใน BottomNavigationBar
+  // ห้ามปล่อยให้ List นี้ว่าง เพราะจะทำให้เกิด RangeError
+  late final List<Widget> _pages = [
+    const ShopHomeScreen(),
 
+    // หน้า Profile ตัวอย่าง
+    // ถ้าภายหลังมีข้อมูลจาก Login จริง ค่อยส่ง username/email จริงเข้ามา
+    const ProfileScreen(
+      username: 'Guest User',
+      email: 'guest@email.com',
+    ),
   ];
 
+  // ฟังก์ชันเปลี่ยนหน้าเมื่อกด BottomNavigationBar
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index; // อัปเดตค่า Index และสั่งรีเฟรชหน้าจอ
+      _selectedIndex = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // แสดงหน้าตาม index ที่เลือก
       body: _pages[_selectedIndex],
 
+      // แถบเมนูด้านล่าง
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
-
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

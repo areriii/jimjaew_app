@@ -1,33 +1,107 @@
 // คำสั่งซื้อของฉัน
+// หน้านี้ใช้สำหรับแสดงรายการสินค้าที่ผู้ใช้สั่งซื้อ
+// ผู้ใช้สามารถยกเลิกคำสั่งซื้อ หรือกดยืนยันว่าได้รับสินค้าแล้วได้
+// คอมเมนต์ในโค้ดใช้ภาษาไทย ส่วนข้อความที่แสดงในแอปใช้ภาษาอังกฤษทั้งหมด
 
 import 'package:flutter/material.dart';
-// 🔴 เช็ค Import ให้ตรงกับโฟลเดอร์ของคุณ
 import 'package:jimjaew_app/products/order_manager.dart';
 
 class OrderScreen extends StatelessWidget {
   OrderScreen({super.key});
 
+  // ใช้สำหรับเรียกข้อมูลคำสั่งซื้อ และอัปเดตสถานะคำสั่งซื้อจาก Firebase
   final OrderManager _orderManager = OrderManager();
-  // 🌟 เพิ่มฟังก์ชัน Pop-up ยืนยันการยกเลิก ไว้ตรงนี้ครับ (ก่อนถึง Widget build)
-  void _showCancelDialog(BuildContext context, String orderId, String name) {
+
+  // ฟังก์ชันแปลงสถานะเก่าที่เป็นภาษาไทยใน Firebase ให้แสดงเป็นภาษาอังกฤษบนแอป
+  String _getDisplayStatus(String status) {
+    if (status == 'อยู่ระหว่างการส่ง') {
+      return 'In Delivery';
+    } else if (status == 'ส่งแล้ว') {
+      return 'Delivered';
+    } else if (status == 'ยกเลิกแล้ว') {
+      return 'Cancelled';
+    } else {
+      return status;
+    }
+  }
+
+  // ฟังก์ชันเช็คว่าสถานะนี้เป็นสถานะกำลังจัดส่งหรือไม่
+  bool _isInDelivery(String status) {
+    return status == 'In Delivery' || status == 'อยู่ระหว่างการส่ง';
+  }
+
+  // ฟังก์ชันเช็คว่าสถานะนี้เป็นสถานะจัดส่งแล้วหรือไม่
+  bool _isDelivered(String status) {
+    return status == 'Delivered' || status == 'ส่งแล้ว';
+  }
+
+  // ฟังก์ชันกำหนดสีพื้นหลังของสถานะ
+  Color _getStatusBackgroundColor(String status) {
+    if (_isDelivered(status)) {
+      return Colors.green.shade100;
+    } else if (_getDisplayStatus(status) == 'Cancelled') {
+      return Colors.red.shade100;
+    } else {
+      return Colors.orange.shade100;
+    }
+  }
+
+  // ฟังก์ชันกำหนดสีตัวอักษรของสถานะ
+  Color _getStatusTextColor(String status) {
+    if (_isDelivered(status)) {
+      return Colors.green;
+    } else if (_getDisplayStatus(status) == 'Cancelled') {
+      return Colors.red;
+    } else {
+      return Colors.orange;
+    }
+  }
+
+  // ฟังก์ชันแสดง Pop-up เพื่อยืนยันการยกเลิกคำสั่งซื้อ
+  void _showCancelDialog(
+      BuildContext context,
+      String orderId,
+      String name,
+      ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("ยกเลิกคำสั่งซื้อ?"),
-        content: Text("คุณต้องการยกเลิกรายการ '$name' ใช่หรือไม่?"),
+        title: const Text("Cancel Order?"),
+        content: Text(
+          "Are you sure you want to cancel '$name'?",
+        ),
         actions: [
+          // ปุ่มปิด Pop-up โดยไม่ยกเลิกคำสั่งซื้อ
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("ไม่", style: TextStyle(color: Colors.grey)),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text(
+              "No",
+              style: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
           ),
+
+          // ปุ่มยืนยันการยกเลิกคำสั่งซื้อ
           TextButton(
             onPressed: () async {
-              // 1. สั่งลบข้อมูลออกจาก Firebase
+              // สั่งลบหรือยกเลิกข้อมูลคำสั่งซื้อใน Firebase
               await _orderManager.cancelOrder(orderId);
-              // 2. ปิดหน้าต่าง Pop-up
-              if (context.mounted) Navigator.pop(context);
+
+              // ปิดหน้าต่าง Pop-up หลังจากทำงานเสร็จ
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
-            child: const Text("ใช่, ยกเลิกเลย", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: const Text(
+              "Yes, Cancel",
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -38,71 +112,122 @@ class OrderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+
+      // AppBar ด้านบนของหน้าคำสั่งซื้อของฉัน
       appBar: AppBar(
-        title: const Text('คำสั่งซื้อของฉัน'),
+        title: const Text('My Orders'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
-      // 🌟 ใช้ StreamBuilder คอยฟังว่ามีออเดอร์ใหม่เข้ามารึเปล่า
+
+      // ใช้ StreamBuilder เพื่อดึงคำสั่งซื้อของผู้ใช้แบบ real-time จาก Firebase
       body: StreamBuilder<List<OrderModel>>(
-        stream: _orderManager.getMyPurchasesStream(), // ดึงเฉพาะของที่ฉันซื้อ
+        // ดึงเฉพาะรายการสินค้าที่ผู้ใช้ซื้อ
+        stream: _orderManager.getMyPurchasesStream(),
+
         builder: (context, snapshot) {
+          // กรณีกำลังโหลดข้อมูลจาก Firebase
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
-          // ถ้ายังไม่มีใครซื้อของเลย ให้โชว์หน้าว่างๆ (แบบรูปของคุณ)
+          // กรณีไม่มีคำสั่งซื้อ
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.assignment_outlined, size: 80, color: Colors.grey.shade400),
+                  Icon(
+                    Icons.assignment_outlined,
+                    size: 80,
+                    color: Colors.grey.shade400,
+                  ),
                   const SizedBox(height: 16),
-                  const Text("ยังไม่มีคำสั่งซื้อในขณะนี้", style: TextStyle(color: Colors.grey, fontSize: 16)),
+                  const Text(
+                    "No orders yet",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
             );
           }
 
-          // ถ้ามีคำสั่งซื้อแล้ว ให้โชว์เป็นรายการ (List)
+          // เก็บข้อมูลคำสั่งซื้อทั้งหมดที่ดึงมาจาก Firebase
           final orders = snapshot.data!;
+
+          // แสดงรายการคำสั่งซื้อเป็น ListView
           return ListView.builder(
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index];
+
+              // แปลง Timestamp จาก Firebase เป็นวันที่
               final date = order.createdAt.toDate();
+
+              // จัดรูปแบบวันที่ให้แสดงแบบอ่านง่าย
               final dateString = "${date.day}/${date.month}/${date.year}";
 
+              // แปลงสถานะให้เป็นภาษาอังกฤษสำหรับแสดงบนหน้าจอ
+              final displayStatus = _getDisplayStatus(order.status);
+
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 color: Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
+
+                  // เนื้อหาภายใน Card ของแต่ละคำสั่งซื้อ
                   child: Column(
                     children: [
                       ListTile(
+                        // Icon ด้านซ้ายของคำสั่งซื้อ
                         leading: const CircleAvatar(
                           backgroundColor: Colors.blue,
-                          child: Icon(Icons.local_shipping, color: Colors.white),
+                          child: Icon(
+                            Icons.local_shipping,
+                            color: Colors.white,
+                          ),
                         ),
-                        title: Text(order.productName, style: const TextStyle(fontWeight: FontWeight.bold)),
+
+                        // ชื่อสินค้าที่สั่งซื้อ
+                        title: Text(
+                          order.productName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        // วันที่สั่งซื้อและสถานะคำสั่งซื้อ
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("วันที่สั่ง: $dateString"),
-                            // 🌟 5. แสดงสถานะสินค้าพร้อมสีที่ต่างกัน
+                            Text("Ordered on: $dateString"),
+
+                            // กล่องแสดงสถานะสินค้า
                             Container(
                               margin: const EdgeInsets.only(top: 4),
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: order.status == 'ส่งแล้ว' ? Colors.green.shade100 : Colors.orange.shade100,
+                                color: _getStatusBackgroundColor(
+                                  order.status,
+                                ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                order.status,
+                                displayStatus,
                                 style: TextStyle(
-                                  color: order.status == 'ส่งแล้ว' ? Colors.green : Colors.orange,
+                                  color: _getStatusTextColor(order.status),
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -110,28 +235,61 @@ class OrderScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        trailing: Text("฿${order.totalPrice}", style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+
+                        // ราคาสินค้า
+                        trailing: Text(
+                          "฿${order.totalPrice}",
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
+
                       const Divider(),
-                      // 🌟 6. เพิ่มปุ่มกดยกเลิกคำสั่งซื้อ
-                      // 🌟 6. แถบปุ่มกด (จะโชว์ปุ่มต่างกันตามสถานะ)
+
+                      // แถบปุ่มด้านล่างของ Card
+                      // จะแสดงปุ่มแตกต่างกันตามสถานะคำสั่งซื้อ
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          // ถ้าสถานะ 'อยู่ระหว่างการส่ง' ให้โชว์ทั้งปุ่มยกเลิก และ ปุ่มรับสินค้า
-                          if (order.status == 'อยู่ระหว่างการส่ง') ...[
+                          // ถ้าสินค้าอยู่ระหว่างการส่ง จะแสดงปุ่ม Cancel และ Received
+                          if (_isInDelivery(order.status)) ...[
                             TextButton(
-                              onPressed: () => _showCancelDialog(context, order.id, order.productName),
-                              child: const Text("ยกเลิก", style: TextStyle(color: Colors.red)),
+                              onPressed: () {
+                                _showCancelDialog(
+                                  context,
+                                  order.id,
+                                  order.productName,
+                                );
+                              },
+                              child: const Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  color: Colors.red,
+                                ),
+                              ),
                             ),
+
                             const SizedBox(width: 8),
+
                             ElevatedButton(
                               onPressed: () async {
-                                // พอกดปุ่มนี้ ให้วิ่งไปเปลี่ยนสถานะใน Firebase เป็น 'ส่งแล้ว'
-                                await _orderManager.updateOrderStatus(order.id, 'ส่งแล้ว');
+                                // เมื่อผู้ใช้กดรับสินค้าแล้ว ให้อัปเดตสถานะใน Firebase เป็นภาษาอังกฤษ
+                                await _orderManager.updateOrderStatus(
+                                  order.id,
+                                  'Delivered',
+                                );
+
+                                // แสดงข้อความแจ้งเตือนเมื่อยืนยันรับสินค้าสำเร็จ
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('🎉 ยืนยันการรับสินค้าสำเร็จ!'), backgroundColor: Colors.green),
+                                    const SnackBar(
+                                      content: Text(
+                                        'Order received successfully!',
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
                                   );
                                 }
                               },
@@ -140,15 +298,23 @@ class OrderScreen extends StatelessWidget {
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                               ),
-                              child: const Text("ฉันได้รับสินค้าแล้ว"),
+                              child: const Text(
+                                "I Received the Product",
+                              ),
                             ),
                           ],
 
-                          // ถ้าสถานะเป็น 'ส่งแล้ว' ให้โชว์แค่ข้อความขอบคุณ (ไม่มีปุ่มให้กดแล้ว)
-                          if (order.status == 'ส่งแล้ว')
+                          // ถ้าสถานะเป็น Delivered แล้ว จะแสดงข้อความขอบคุณแทนปุ่ม
+                          if (_isDelivered(order.status))
                             const Padding(
                               padding: EdgeInsets.all(8.0),
-                              child: Text("ขอบคุณที่อุดหนุน!", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                              child: Text(
+                                "Thank you for your purchase!",
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                         ],
                       ),

@@ -1,10 +1,9 @@
-//หน้า ระบบ เทรด
 import 'package:flutter/material.dart';
-// 🔴 เช็ค Import ให้ตรงกับโฟลเดอร์ของคุณนะครับ
 import 'package:jimjaew_app/home_screen/seller_order_screen.dart';
 import 'package:jimjaew_app/home_screen/income_screen.dart';
 import 'package:jimjaew_app/products/order_manager.dart';
 
+// หน้า ระบบ เทรด
 class TradeSystemScreen extends StatefulWidget {
   const TradeSystemScreen({super.key});
 
@@ -15,52 +14,119 @@ class TradeSystemScreen extends StatefulWidget {
 class _TradeSystemScreenState extends State<TradeSystemScreen> {
   final OrderManager _orderManager = OrderManager();
 
-  // 🌟 ฟังก์ชันอนุมัติแล้วอัปเดตขึ้น Firebase
+  // ฟังก์ชันอนุมัติรายการเทรด แล้วอัปเดตสถานะขึ้น Firebase
   void _approveTrade(TradeModel item) {
     double finalPrice = item.originalPrice - item.discount;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("ยืนยันการอนุมัติเทรด"),
+        title: const Text("Confirm Trade Approval"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("สินค้า: ${item.name}"),
+            Text("Product: ${item.name}"),
             const SizedBox(height: 8),
-            Text("ราคาปกติ: ฿${item.originalPrice}", style: const TextStyle(decoration: TextDecoration.lineThrough, color: Colors.grey)),
-            Text("ส่วนลดเทรด: - ฿${item.discount}", style: const TextStyle(color: Colors.red)),
+            Text(
+              "Original Price: ฿${item.originalPrice}",
+              style: const TextStyle(
+                decoration: TextDecoration.lineThrough,
+                color: Colors.grey,
+              ),
+            ),
+            Text(
+              "Trade Discount: - ฿${item.discount}",
+              style: const TextStyle(
+                color: Colors.red,
+              ),
+            ),
             const Divider(),
-            Text("ราคาสุทธิ: ฿$finalPrice", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green)),
+            Text(
+              "Final Price: ฿$finalPrice",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.green,
+              ),
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("ยกเลิก")),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Cancel"),
+          ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // ปิด Pop-up
+              Navigator.pop(context);
 
-              // 1. เปลี่ยนสถานะใน Firebase เป็น "อนุมัติแล้ว"
-              await _orderManager.updateTradeStatus(item.id, 'อนุมัติแล้ว');
+              // เปลี่ยนสถานะใน Firebase เป็นภาษาอังกฤษ
+              await _orderManager.updateTradeStatus(
+                item.id,
+                'Approved',
+              );
 
-              // 2. ส่งยอดเงินเข้า "รายได้ของร้าน"
-              await _orderManager.addOrder("ขายสินค้า (เทรด): ${item.name}", finalPrice);
-
-              // 3. ส่งยอดเงินเข้า "คำสั่งซื้อจากลูกค้า"
-              //await _orderManager.addMyPurchase("ใช้ส่วนลดเทรด: ${item.name}", finalPrice);
+              // เพิ่มรายการขายเข้าไปยังรายได้ของร้าน
+              await _orderManager.addOrder(
+                "Trade Sale: ${item.name}",
+                finalPrice,
+              );
 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('🎉 อนุมัติสำเร็จ! ระบบบันทึกข้อมูลเรียบร้อย'), backgroundColor: Colors.green),
+                  const SnackBar(
+                    content: Text(
+                      'Trade approved successfully!',
+                    ),
+                    backgroundColor: Colors.green,
+                  ),
                 );
               }
             },
-            child: const Text("อนุมัติและรับชำระเงิน", style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              "Approve & Receive Payment",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  // แปลงสถานะภาษาไทยเดิมใน Firebase ให้แสดงเป็นภาษาอังกฤษบนหน้าจอ
+  String _getDisplayStatus(String status) {
+    if (status == 'อนุมัติแล้ว') {
+      return 'Approved';
+    } else if (status == 'รอตรวจสอบ') {
+      return 'Pending';
+    } else if (status == 'ปฏิเสธ') {
+      return 'Rejected';
+    } else {
+      return status;
+    }
+  }
+
+  // กำหนดสีของสถานะตามข้อความที่แสดง
+  Color _getStatusColor(String status) {
+    final displayStatus = _getDisplayStatus(status);
+
+    if (displayStatus == 'Approved') {
+      return Colors.green;
+    } else if (displayStatus == 'Pending') {
+      return Colors.orange;
+    } else {
+      return Colors.red;
+    }
+  }
+
+  // ตรวจสอบว่าสถานะนี้ยังรอการตรวจสอบอยู่หรือไม่
+  bool _isPendingStatus(String status) {
+    return status == 'Pending' || status == 'รอตรวจสอบ';
   }
 
   @override
@@ -68,70 +134,146 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('ระบบการเทรดสินค้า'),
+        title: const Text('Trade System'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
+          // ปุ่มลัดสำหรับไปยังหน้าออเดอร์ลูกค้าและหน้ารายได้ของร้าน
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.white,
             child: Row(
               children: [
-                Expanded(child: _buildShortcutButton(context, 'ออเดอร์ลูกค้า', Icons.shopping_basket, Colors.orange, SellerOrderScreen())),
+                Expanded(
+                  child: _buildShortcutButton(
+                    context,
+                    'Customer Orders',
+                    Icons.shopping_basket,
+                    Colors.orange,
+                    SellerOrderScreen(),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: _buildShortcutButton(context, 'รายได้ของร้าน', Icons.account_balance_wallet, Colors.green, IncomeScreen())),
+                Expanded(
+                  child: _buildShortcutButton(
+                    context,
+                    'Store Income',
+                    Icons.account_balance_wallet,
+                    Colors.green,
+                    IncomeScreen(),
+                  ),
+                ),
               ],
             ),
           ),
 
           const SizedBox(height: 16),
+
+          // หัวข้อรายการเทรด
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text("รายการที่ลูกค้าส่งมาเทรด (จาก Firebase จริง)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: Text(
+                "Trade Requests",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
 
-          // 🌟 ใช้ StreamBuilder ดึงข้อมูลจริงจาก Firebase
+          // ดึงข้อมูลรายการเทรดจาก Firebase
           Expanded(
             child: StreamBuilder<List<TradeModel>>(
               stream: _orderManager.getTradesStream(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
                 }
+
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("ยังไม่มีรายการเทรด", style: TextStyle(color: Colors.grey)));
+                  return const Center(
+                    child: Text(
+                      "No trade requests yet",
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
                 }
 
                 final trades = snapshot.data!;
+
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: trades.length,
                   itemBuilder: (context, index) {
                     final item = trades[index];
-                    Color statusColor = item.status == 'อนุมัติแล้ว' ? Colors.green : (item.status == 'รอตรวจสอบ' ? Colors.orange : Colors.red);
+
+                    final displayStatus = _getDisplayStatus(item.status);
+                    final statusColor = _getStatusColor(item.status);
 
                     return Card(
                       elevation: 0,
                       margin: const EdgeInsets.only(bottom: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade200)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: Colors.grey.shade200,
+                        ),
+                      ),
                       child: ListTile(
-                        onTap: item.status == 'รอตรวจสอบ' ? () => _approveTrade(item) : null,
+                        onTap: _isPendingStatus(item.status)
+                            ? () {
+                          _approveTrade(item);
+                        }
+                            : null,
                         leading: Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: Colors.blue.shade50, shape: BoxShape.circle),
-                          child: const Icon(Icons.swap_horiz, color: Colors.blue),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.swap_horiz,
+                            color: Colors.blue,
+                          ),
                         ),
-                        title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text("สภาพ: ${item.grade} | ลด ฿${item.discount}"),
+                        title: Text(
+                          item.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          "Condition: ${item.grade} | Discount ฿${item.discount}",
+                        ),
                         trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                          child: Text(item.status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            displayStatus,
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -142,39 +284,86 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
           ),
         ],
       ),
-      // 🌟 ปุ่มจำลองลูกค้าส่งของมาเทรด
+
+      // ปุ่มเพิ่มข้อมูลเทรดตัวอย่างเข้า Firebase
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // กดปุ่มนี้จะส่งข้อมูลเข้า Firebase จริงๆ
-          await _orderManager.addTradeRequest('นาฬิกาสมาร์ทวอทช์', 'เกรด A', 1500.0, 400.0);
+          await _orderManager.addTradeRequest(
+            'Smart Watch',
+            'Grade A',
+            1500.0,
+            400.0,
+          );
+
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('ส่งคำขอเทรดจำลองสำเร็จ!')),
+              const SnackBar(
+                content: Text(
+                  'Trade request added successfully!',
+                ),
+              ),
             );
           }
         },
-        label: const Text("จำลองลูกค้าส่งของมาเทรด", style: TextStyle(color: Colors.white)),
-        icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
+        label: const Text(
+          "Add Demo Trade",
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        icon: const Icon(
+          Icons.add_shopping_cart,
+          color: Colors.white,
+        ),
         backgroundColor: Colors.blue,
       ),
     );
   }
 
-  Widget _buildShortcutButton(BuildContext context, String title, IconData icon, Color color, Widget targetPage) {
+  // สร้างปุ่มลัดด้านบนของหน้า
+  Widget _buildShortcutButton(
+      BuildContext context,
+      String title,
+      IconData icon,
+      Color color,
+      Widget targetPage,
+      ) {
     return InkWell(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage)),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => targetPage,
+          ),
+        );
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(
+          vertical: 16,
+        ),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: color.withValues(alpha: 0.3),
+          ),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 30),
+            Icon(
+              icon,
+              color: color,
+              size: 30,
+            ),
             const SizedBox(height: 8),
-            Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(
+              title,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
           ],
         ),
       ),

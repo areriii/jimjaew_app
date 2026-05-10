@@ -1,65 +1,86 @@
 // หน้ากดซื้อสินค้า
+// หน้านี้ใช้สำหรับแสดงรายละเอียดสินค้า รูปสินค้า ราคา สต็อก รีวิว
+// และมีปุ่ม Add to Cart กับ Buy Now สำหรับสั่งซื้อสินค้า
 
-import 'dart:io';
 import 'package:flutter/material.dart';
-// 🔴 เช็คให้แน่ใจว่า import ถูกโฟลเดอร์นะครับ
 import 'package:jimjaew_app/products/shop_item_model.dart';
-
 import '../products/order_manager.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  // ✅ เปลี่ยนมารับข้อมูลเป็นก้อน ShopItemModel
+  // รับข้อมูลสินค้าเป็นก้อน ShopItemModel
+  // เพื่อให้หน้านี้สามารถใช้ข้อมูลจาก Firebase ได้โดยตรง
   final ShopItemModel product;
 
-  const ProductDetailScreen({super.key, required this.product});
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+  });
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  // ใช้สำหรับสั่งซื้อสินค้าและบันทึกข้อมูลคำสั่งซื้อ
+  final OrderManager _orderManager = OrderManager();
+
   @override
   Widget build(BuildContext context) {
-    // ดึงข้อมูลสินค้ามาเก็บไว้ในตัวแปร item
+    // ดึงข้อมูลสินค้าที่ถูกส่งเข้ามาเก็บไว้ในตัวแปร item
     final item = widget.product;
 
     return Scaffold(
       backgroundColor: Colors.white,
+
+      // AppBar ด้านบนของหน้ารายละเอียดสินค้า
       appBar: AppBar(
         title: Text(item.name),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.shopping_cart))
+          // ปุ่มไอคอนตะกร้าสินค้าด้านขวาบน
+          IconButton(
+            onPressed: () {
+              // สามารถเพิ่ม logic ไปหน้า Cart ได้ในอนาคต
+            },
+            icon: const Icon(Icons.shopping_cart),
+          ),
         ],
       ),
+
+      // เนื้อหาหลักของหน้ารายละเอียดสินค้า
       body: ListView(
         children: [
-          // 1. ส่วนรูปภาพ
+          // ส่วนแสดงรูปภาพสินค้า
           Container(
             height: 300,
             width: double.infinity,
             color: Colors.grey[100],
-            child: item.imagePath != null
-                ? Image.file(File(item.imagePath!), fit: BoxFit.cover)
-                : const Icon(Icons.image, size: 100, color: Colors.grey),
+            child: _buildProductImage(item),
           ),
 
-          // 2. ส่วนรายละเอียด
-          // 2. ส่วนรายละเอียด
+          // ส่วนแสดงรายละเอียดสินค้า
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ชื่อสินค้า
                 Text(
                   item.name,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+
                 const SizedBox(height: 12),
+
+                // แถวราคาและจำนวนสินค้าในสต็อก
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // ราคาสินค้า
                     Text(
                       "฿${item.price.toStringAsFixed(2)}",
                       style: const TextStyle(
@@ -68,59 +89,102 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
+                    // สถานะสินค้าในสต็อก
                     Text(
-                      item.stock > 0 ? "มีสินค้า : ${item.stock} ชิ้น" : "สินค้าหมด",
+                      item.stock > 0
+                          ? "Stock: ${item.stock}"
+                          : "Out of Stock",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: item.stock > 10 ? Colors.green : (item.stock > 0 ? Colors.orange : Colors.red),
+                        color: item.stock > 10
+                            ? Colors.green
+                            : (item.stock > 0 ? Colors.orange : Colors.red),
                       ),
                     ),
                   ],
                 ),
 
-                // 🌟 แถวโชว์สถิติดาวและรีวิวในหน้ารายละเอียด (เพิ่มใหม่ตรงนี้)
                 const SizedBox(height: 12),
+
+                // แถวแสดงคะแนนดาว รีวิว และจำนวนที่ขายแล้ว
                 Row(
                   children: [
-                    // วาดดาว 5 ดวงตามคะแนน (สุ่มวาดดาวเต็มดวง)
+                    // แสดงดาว 5 ดวงตามคะแนนของสินค้า
                     Row(
-                      children: List.generate(5, (index) {
-                        return Icon(
-                          index < item.rating.floor() ? Icons.star : Icons.star_border,
-                          color: Colors.amber,
-                          size: 20,
-                        );
-                      }),
+                      children: List.generate(
+                        5,
+                            (index) {
+                          return Icon(
+                            index < item.rating.floor()
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: Colors.amber,
+                            size: 20,
+                          );
+                        },
+                      ),
                     ),
+
                     const SizedBox(width: 8),
+
+                    // คะแนนรีวิว เช่น 4.5
                     Text(
-                      item.rating.toStringAsFixed(1), // เช่น 4.5
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      item.rating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+
                     const SizedBox(width: 8),
+
+                    // เส้นคั่นระหว่างคะแนนกับจำนวนขาย
                     Container(
                       height: 15,
                       width: 1,
-                      color: Colors.grey.shade400, // เส้นคั่นตรงกลางแบบเท่ๆ
+                      color: Colors.grey.shade400,
                     ),
+
                     const SizedBox(width: 8),
+
+                    // จำนวนสินค้าที่ขายแล้ว
                     Text(
-                      "ขายแล้ว ${item.reviewCount * 3} ชิ้น", // สุ่มยอดขายอิงจากจำนวนคนรีวิว
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      "Sold ${item.reviewCount * 3}",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
                     ),
                   ],
                 ),
 
-                const Divider(height: 40, thickness: 1),
-                const Text(
-                  "รายละเอียดสินค้า",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                const Divider(
+                  height: 40,
+                  thickness: 1,
                 ),
-                const SizedBox(height: 8),
+
+                // หัวข้อรายละเอียดสินค้า
                 const Text(
-                  "นี่คือรายละเอียดสินค้าจำลอง คุณสามารถเพิ่มคำอธิบายสินค้ายาวๆ ลงในฐานข้อมูล Firebase แล้วดึงมาแสดงตรงนี้ได้ในอนาคตครับ...",
-                  style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
+                  "Product Details",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // รายละเอียดสินค้า
+                // ตอนนี้ใช้ข้อความกลางไว้ก่อน หากมี field description ใน Firebase สามารถเปลี่ยนมาใช้ item.description ได้
+                const Text(
+                  "This product information is loaded from the store database. You can add a full product description in Firebase and display it here later.",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
@@ -128,49 +192,90 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
 
-      // 3. ปุ่มด้านล่าง
+      // ปุ่มด้านล่างของหน้ารายละเอียดสินค้า
       bottomNavigationBar: Container(
         color: Colors.white,
         padding: const EdgeInsets.all(12.0),
         child: SafeArea(
           child: Row(
             children: [
+              // ปุ่มเพิ่มสินค้าลงตะกร้า
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () { },
-                  icon: const Icon(Icons.add_shopping_cart, color: Colors.blue),
-                  label: const Text("เพิ่มลงรถเข็น", style: TextStyle(color: Colors.blue)),
+                  onPressed: item.stock <= 0
+                      ? null
+                      : () {
+                    // สามารถเพิ่ม logic สำหรับ Add to Cart ได้ในอนาคต
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Product added to cart.',
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.add_shopping_cart,
+                    color: Colors.blue,
+                  ),
+                  label: const Text(
+                    "Add to Cart",
+                    style: TextStyle(
+                      color: Colors.blue,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.blue),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: const BorderSide(
+                      color: Colors.blue,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ),
+
               const SizedBox(width: 8),
+
+              // ปุ่มซื้อสินค้า
               Expanded(
                 child: ElevatedButton.icon(
-                  // 🌟 เพิ่ม async ตรงนี้
-                  onPressed: () async {
-                    // 🌟 โค้ดสร้างคำสั่งซื้อเมื่อกดปุ่ม
-                    final orderManager = OrderManager();
-                    // โยนชื่อสินค้า และ ราคา ส่งไปที่ Firebase
-                    await orderManager.addMyPurchase(item.name, item.price); // ส่งข้อมูลเข้าตะกร้าฉันเอง
+                  onPressed: item.stock <= 0
+                      ? null
+                      : () async {
+                    // เมื่อกด Buy Now จะบันทึกคำสั่งซื้อของผู้ใช้ลง Firebase
+                    await _orderManager.addMyPurchase(
+                      item.name,
+                      item.price,
+                    );
 
-                    // โชว์แจ้งเตือนเด้งด้านล่างว่าซื้อสำเร็จแล้ว
+                    // แสดงข้อความแจ้งเตือนเมื่อสั่งซื้อสำเร็จ
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('🎉 สั่งซื้อสำเร็จ! ไปเช็คที่หน้าคำสั่งซื้อของฉันได้เลย'),
+                          content: Text(
+                            'Purchase completed successfully. Please check My Orders.',
+                          ),
                           backgroundColor: Colors.green,
                         ),
                       );
                     }
                   },
-                  icon: const Icon(Icons.payment, color: Colors.white),
-                  label: const Text("ซื้อสินค้า", style: TextStyle(color: Colors.white)),
+                  icon: const Icon(
+                    Icons.payment,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    "Buy Now",
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ),
@@ -178,6 +283,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // ฟังก์ชันแสดงรูปภาพสินค้า
+  // รองรับรูปจาก URL ที่บันทึกมาจาก Firebase
+  Widget _buildProductImage(ShopItemModel item) {
+    final imagePath = item.imagePath;
+
+    // ถ้าไม่มีรูปภาพ ให้แสดง icon แทน
+    if (imagePath == null || imagePath.isEmpty) {
+      return const Icon(
+        Icons.image,
+        size: 100,
+        color: Colors.grey,
+      );
+    }
+
+    // ใช้ Image.network เพื่อให้รองรับรูปจาก Firebase Storage หรือ URL
+    return Image.network(
+      imagePath,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return const Icon(
+          Icons.broken_image,
+          size: 100,
+          color: Colors.grey,
+        );
+      },
     );
   }
 }

@@ -1,5 +1,4 @@
-//หน้า ร้านของคุณ
-import 'dart:io';
+// หน้า ร้านของคุณ
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/products/product_manager.dart';
 import 'package:jimjaew_app/products/shop_item_model.dart';
@@ -30,9 +29,13 @@ class _ShopScreenState extends State<ShopScreen> {
           children: [
             _buildHeader(context),
             const TabBar(
-              indicatorColor: Colors.white,
+              indicatorColor: Color(0xFF4D93CF),
               labelColor: Colors.black,
-              tabs: [Tab(text: "สินค้า"), Tab(text: "หมวดหมู่")],
+              unselectedLabelColor: Colors.grey,
+              tabs: [
+                Tab(text: "Products"),
+                Tab(text: "Categories"),
+              ],
             ),
             Expanded(
               child: TabBarView(
@@ -54,10 +57,22 @@ class _ShopScreenState extends State<ShopScreen> {
     return StreamBuilder<List<ShopItemModel>>(
       stream: _productManager.getProductsStream(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.blue));
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('ยังไม่มีสินค้าในร้านของคุณ'));
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Colors.blue,
+            ),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text('No products in your store'),
+          );
+        }
 
         final products = snapshot.data!;
+
         return GridView.builder(
           padding: const EdgeInsets.all(8),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -67,7 +82,9 @@ class _ShopScreenState extends State<ShopScreen> {
             mainAxisSpacing: 8,
           ),
           itemCount: products.length,
-          itemBuilder: (context, index) => _buildProductCard(products[index]),
+          itemBuilder: (context, index) {
+            return _buildProductCard(products[index]);
+          },
         );
       },
     );
@@ -78,14 +95,35 @@ class _ShopScreenState extends State<ShopScreen> {
     return Card(
       elevation: 1,
       color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: product.imagePath != null
-                ? Image.file(File(product.imagePath!), fit: BoxFit.cover, width: double.infinity)
-                : const Center(child: Icon(Icons.image, size: 50, color: Colors.grey)),
+            child: product.imagePath != null && product.imagePath!.isNotEmpty
+                ? Image.network(
+              product.imagePath!,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              errorBuilder: (context, error, stackTrace) {
+                return const Center(
+                  child: Icon(
+                    Icons.image_not_supported,
+                    size: 50,
+                    color: Colors.grey,
+                  ),
+                );
+              },
+            )
+                : const Center(
+              child: Icon(
+                Icons.image,
+                size: 50,
+                color: Colors.grey,
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -93,34 +131,64 @@ class _ShopScreenState extends State<ShopScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                    product.name,
-                    maxLines: 1, // ปรับให้เหลือ 1 บรรทัดเพื่อเพิ่มพื้นที่ให้แถวดาว
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)
+                  product.name,
+                  maxLines: 1, // ปรับให้เหลือ 1 บรรทัดเพื่อเพิ่มพื้นที่ให้แถวดาว
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+
                 const SizedBox(height: 4),
 
                 // 🌟 แถวโชว์คะแนนดาวรีวิวแบบสวยงามสไตล์ Shopee
                 Row(
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 14), // ดาวสีทอง
+                    const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                      size: 14,
+                    ), // ดาวสีทอง
                     const SizedBox(width: 4),
                     Text(
                       product.rating.toStringAsFixed(1), // โชว์คะแนน เช่น 4.8
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       "(${product.reviewCount})", // โชว์จำนวนคนรีวิว เช่น (120)
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                      ),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 6),
-                Text("฿${product.price}", style: const TextStyle(color: Color(0xFFEE4D2D), fontSize: 16, fontWeight: FontWeight.bold)),
+
+                Text(
+                  "฿${product.price}",
+                  style: const TextStyle(
+                    color: Color(0xFFEE4D2D),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
                 const SizedBox(height: 4),
-                Text("คงเหลือ: ${product.stock} ชิ้น", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+
+                Text(
+                  "Stock: ${product.stock}",
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey,
+                  ),
+                ),
               ],
             ),
           ),
@@ -137,14 +205,27 @@ class _ShopScreenState extends State<ShopScreen> {
       child: SafeArea(
         child: ElevatedButton(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProductScreen()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProductScreen(),
+              ),
+            );
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue,
             minimumSize: const Size(double.infinity, 45),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
           ),
-          child: const Text("จัดการสินค้า (เพิ่ม/แก้ไข/ลบ)", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          child: const Text(
+            "Manage Products",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ),
     );
@@ -153,10 +234,18 @@ class _ShopScreenState extends State<ShopScreen> {
   // --- ส่วน Header ด้านบน ---
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
+      padding: const EdgeInsets.only(
+        top: 50,
+        left: 16,
+        right: 16,
+        bottom: 20,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF4D93CF), Color(0xFF90CCEE)],
+          colors: [
+            Color(0xFF4D93CF),
+            Color(0xFF90CCEE),
+          ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -164,18 +253,39 @@ class _ShopScreenState extends State<ShopScreen> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.pop(context)),
-              const Icon(Icons.settings, color: Colors.white),
+              IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
             ],
           ),
           const SizedBox(height: 10),
-          Row(
+          const Row(
             children: [
-              const CircleAvatar(radius: 30, backgroundImage: NetworkImage('https://i.pravatar.cc/150')),
-              const SizedBox(width: 15),
-              const Text("pineare.shopeeeee", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.storefront,
+                  color: Color(0xFF4D93CF),
+                  size: 32,
+                ),
+              ),
+              SizedBox(width: 15),
+              Text(
+                "My Store",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ],
@@ -198,8 +308,15 @@ class _ShopScreenState extends State<ShopScreen> {
       children: [
         const Padding(
           padding: EdgeInsets.all(16.0),
-          child: Text("เลือกหมวดหมู่", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          child: Text(
+            "Select Category",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
+
         SizedBox(
           height: 100,
           child: ListView.builder(
@@ -207,6 +324,7 @@ class _ShopScreenState extends State<ShopScreen> {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final categoryLabel = categories[index]["label"] as String;
+
               // เช็คว่าปุ่มไหนกำลังถูกกดอยู่
               bool isSelected = _selectedCategoryFilter == categoryLabel;
 
@@ -226,7 +344,8 @@ class _ShopScreenState extends State<ShopScreen> {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.blue : Colors.blue.shade50,
+                          color:
+                          isSelected ? Colors.blue : Colors.blue.shade50,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -235,11 +354,14 @@ class _ShopScreenState extends State<ShopScreen> {
                           size: 30,
                         ),
                       ),
+
                       const SizedBox(height: 8),
+
                       Text(
                         categoryLabel,
                         style: TextStyle(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
                           color: Colors.black87,
                         ),
                       ),
@@ -255,23 +377,41 @@ class _ShopScreenState extends State<ShopScreen> {
         Expanded(
           child: StreamBuilder<List<ShopItemModel>>(
             // สั่งให้ไปดึงข้อมูลเฉพาะหมวดหมู่ที่คลิกอยู่เท่านั้น
-            stream: _productManager.getProductsByCategoryStream(_selectedCategoryFilter),
+            stream: _productManager.getProductsByCategoryStream(
+              _selectedCategoryFilter,
+            ),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.blue));
-              if (snapshot.hasError) return Center(child: Text('เกิดข้อผิดพลาด: ${snapshot.error}'));
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.blue,
+                  ),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    'Error: ${snapshot.error}',
+                  ),
+                );
+              }
 
               // ถ้าหมวดหมู่นั้นยังไม่มีสินค้า ให้โชว์ข้อความนี้
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return Center(
-                    child: Text(
-                        'ยังไม่มีสินค้าในหมวดหมู่ $_selectedCategoryFilter',
-                        style: const TextStyle(color: Colors.grey)
-                    )
+                  child: Text(
+                    'No products in $_selectedCategoryFilter',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
                 );
               }
 
               // ถ้ามีสินค้า ให้วาดกล่องสินค้าออกมาเลย!
               final products = snapshot.data!;
+
               return GridView.builder(
                 padding: const EdgeInsets.all(8),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -281,7 +421,9 @@ class _ShopScreenState extends State<ShopScreen> {
                   mainAxisSpacing: 8,
                 ),
                 itemCount: products.length,
-                itemBuilder: (context, index) => _buildProductCard(products[index]),
+                itemBuilder: (context, index) {
+                  return _buildProductCard(products[index]);
+                },
               );
             },
           ),

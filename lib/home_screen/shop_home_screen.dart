@@ -1,15 +1,22 @@
-//หน้า โฮม
+// หน้าโฮมร้านค้า
+// หน้านี้ใช้สำหรับแสดงสินค้า ค้นหาสินค้า เลือกหมวดหมู่ กด Favorite และไปหน้า Account
+// แก้ปัญหากด Profile แล้ววนให้ Login ใหม่ โดยเก็บสถานะ Login ไว้ในหน้า Home และเช็กจาก UserManager ด้วย
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:jimjaew_app/model/product_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/home_screen/profile_screen.dart';
-import 'package:jimjaew_app/home_screen/all_products_screen.dart';
-import 'category_screen.dart';
-import 'package:jimjaew_app/products/shop_item_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jimjaew_app/products/shop_item_model.dart'; // เช็ค import ให้ตรงนะครับ
+import 'package:jimjaew_app/home_screen/category_screen.dart';
+
+import 'package:jimjaew_app/login/login_screen.dart';
+import 'package:jimjaew_app/register/register_screen.dart';
+
 import 'package:jimjaew_app/products/product_manager.dart';
+import 'package:jimjaew_app/products/shop_item_model.dart';
+import 'package:jimjaew_app/user/user_manager.dart';
+
 class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
 
@@ -18,14 +25,27 @@ class ShopHomeScreen extends StatefulWidget {
 }
 
 class _ShopHomeScreenState extends State<ShopHomeScreen> {
+  // เก็บตำแหน่งของ BottomNavigationBar
+  // 0 = Home, 1 = Category, 2 = Favorite, 3 = Cart
   int _selectedIndex = 0;
+
+  // ใช้ตรวจสอบว่ากำลังเปิดโหมดค้นหาหรือไม่
   bool _isSearching = false;
+
+  // ใช้เก็บสถานะ Login ภายในหน้า Home
+  // แก้ปัญหากด Profile แล้วเด้งให้ Login ซ้ำ ทั้งที่ Login สำเร็จแล้ว
+  bool _hasLoggedIn = false;
+
+  // ใช้จัดการสินค้า เช่น กด Favorite
   final ProductManager _productManager = ProductManager();
+
+  // Controller ของช่องค้นหา
   final TextEditingController _searchController = TextEditingController();
 
-  // null = ยังไม่ได้เลือก category
+  // หมวดหมู่ที่เลือกอยู่ ถ้าเป็น null คือไม่ได้เลือกหมวดหมู่
   String? selectedCategory;
 
+  // รายการหมวดหมู่สินค้า
   final List<Map<String, dynamic>> categories = [
     {
       "icon": "assets/icons/shirt-solid-full.svg",
@@ -49,111 +69,44 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     },
   ];
 
-  final List<Map<String, dynamic>> products = [
-    {
-      "name": "Gustavo Rosser",
-      "price": "Rs. 1000",
-      "rating": 3,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800",
-      "description": "เสื้อเชิ้ตผู้ชาย ใส่สบาย เหมาะกับหลายโอกาส",
-      "category": "Shirt",
-    },
-    {
-      "name": "Hanna Dokidis",
-      "price": "Rs. 1000",
-      "rating": 3,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=800",
-      "description": "เสื้อเชิ้ตแขนยาว เรียบ ๆ แมตช์ง่าย",
-      "category": "Shirt",
-    },
-    {
-      "name": "Original Tee",
-      "price": "Rs. 1000",
-      "rating": 3,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
-      "description": "เสื้อยืดลำลอง ใส่ได้ทุกวัน",
-      "category": "Shirt",
-    },
-    {
-      "name": "Trouser",
-      "price": "Rs. 3000",
-      "rating": 4,
-      "favorite": true,
-      "image":
-      "https://images.unsplash.com/photo-1506629905607-bb5b4b1fbad5?w=800",
-      "description": "กางเกงทรงสวย ใส่สบาย",
-      "category": "Pants",
-    },
-    {
-      "name": "Blue Jeans",
-      "price": "Rs. 2200",
-      "rating": 4,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800",
-      "description": "กางเกงยีนส์ทรงสวย",
-      "category": "Pants",
-    },
-    {
-      "name": "Classic Glasses",
-      "price": "Rs. 1800",
-      "rating": 4,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800",
-      "description": "แว่นตาทรงคลาสสิก",
-      "category": "Glasses",
-    },
-    {
-      "name": "Sport Shoes",
-      "price": "Rs. 3500",
-      "rating": 5,
-      "favorite": true,
-      "image":
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800",
-      "description": "รองเท้าสำหรับใส่เดินสบาย",
-      "category": "Shoes",
-    },
-    {
-      "name": "Silver Watch",
-      "price": "Rs. 4200",
-      "rating": 4,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800",
-      "description": "นาฬิกาดีไซน์เรียบหรู",
-      "category": "Watch",
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
 
-  List<Map<String, dynamic>> get filteredProducts {
-    final query = _searchController.text.trim().toLowerCase();
+    // เช็กสถานะ Login ตอนเปิดหน้า Home
+    // ถ้า UserManager มี email หรือ profileId แปลว่าเคย Login สำเร็จแล้ว
+    final userManager = UserManager();
 
-    return products.where((product) {
-      final name = (product["name"] ?? "").toString().toLowerCase();
-      final category = (product["category"] ?? "").toString();
+    _hasLoggedIn =
+        (userManager.currentEmail != null &&
+            userManager.currentEmail!.isNotEmpty) ||
+            (userManager.profileId != null &&
+                userManager.profileId!.isNotEmpty);
 
-      final matchCategory =
-      selectedCategory == null ? true : category == selectedCategory;
-
-      final matchSearch = query.isEmpty || name.contains(query);
-
-      return matchCategory && matchSearch;
-    }).toList();
+    print("SHOP HOME INIT LOGIN STATUS: $_hasLoggedIn");
+    print("SHOP HOME INIT EMAIL: ${userManager.currentEmail}");
+    print("SHOP HOME INIT PROFILE ID: ${userManager.profileId}");
   }
 
   @override
   void dispose() {
+    // ปิด Controller เมื่อไม่ใช้งานแล้ว เพื่อป้องกัน memory leak
     _searchController.dispose();
     super.dispose();
   }
 
+  // เช็กสถานะ Login จากทั้งตัวแปรในหน้านี้ และ UserManager
+  // ใช้ 2 ทางเพื่อกันกรณี UserManager มีค่าแล้ว แต่หน้า Home ยังไม่รู้สถานะ
+  bool get _isLoggedIn {
+    final userManager = UserManager();
+
+    return _hasLoggedIn ||
+        (userManager.currentEmail != null &&
+            userManager.currentEmail!.isNotEmpty) ||
+        (userManager.profileId != null && userManager.profileId!.isNotEmpty);
+  }
+
+  // ฟังก์ชันสร้าง icon หมวดหมู่จากไฟล์ SVG
   Widget _buildCategoryIcon(String iconPath, bool isSelected) {
     return SvgPicture.asset(
       iconPath,
@@ -166,6 +119,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     );
   }
 
+  // ฟังก์ชันสร้างปุ่มหมวดหมู่แต่ละอัน
   Widget _buildCategoryItem(Map<String, dynamic> category) {
     final bool isSelected = selectedCategory == category["label"];
     final String iconPath = category["icon"] as String;
@@ -173,6 +127,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
+          // ถ้ากดหมวดหมู่เดิมซ้ำ จะยกเลิกการเลือก
           if (selectedCategory == category["label"]) {
             selectedCategory = null;
           } else {
@@ -182,6 +137,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       },
       child: Column(
         children: [
+          // วงกลม icon หมวดหมู่
           Container(
             width: 62,
             height: 62,
@@ -195,7 +151,10 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
               child: _buildCategoryIcon(iconPath, isSelected),
             ),
           ),
+
           const SizedBox(height: 8),
+
+          // ชื่อหมวดหมู่
           Text(
             category["label"],
             style: TextStyle(
@@ -208,11 +167,227 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     );
   }
 
+  // ฟังก์ชันตรวจสอบก่อนเข้า Account
+  // ถ้า Login แล้ว จะเข้า Profile ทันที
+  // ถ้ายังไม่ Login จะเปิดตัวเลือก Login/Register
+  void _openAccountPage() {
+    print("OPEN ACCOUNT LOGIN STATUS: $_isLoggedIn");
+    print("OPEN ACCOUNT EMAIL: ${UserManager().currentEmail}");
+    print("OPEN ACCOUNT PROFILE ID: ${UserManager().profileId}");
+
+    if (_isLoggedIn) {
+      _goToProfileScreen();
+    } else {
+      _showLoginOrRegisterSheet();
+    }
+  }
+
+  // ฟังก์ชันไปหน้า Profile
+  void _goToProfileScreen() {
+    final userManager = UserManager();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(
+          username: userManager.currentFirstName,
+          email: userManager.currentEmail,
+        ),
+      ),
+    );
+  }
+
+  // ฟังก์ชันแสดงตัวเลือก Login / Register
+  void _showLoginOrRegisterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // เส้นจับด้านบนของ Bottom Sheet
+                Container(
+                  width: 45,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // หัวข้อของ Bottom Sheet
+                const Text(
+                  "Account Required",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // ข้อความอธิบาย
+                const Text(
+                  "Please login or register before opening your account page.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 14,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // ปุ่ม Login
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+
+                      // เปิดหน้า Login และรอผลลัพธ์กลับมา
+                      // หน้า login_screen.dart ต้อง Navigator.pop(context, true); ตอน Login สำเร็จ
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+
+                      print("LOGIN RESULT FROM LOGIN SCREEN: $result");
+                      print("AFTER LOGIN EMAIL: ${UserManager().currentEmail}");
+                      print(
+                        "AFTER LOGIN PROFILE ID: ${UserManager().profileId}",
+                      );
+
+                      // ถ้า Login สำเร็จ ให้จำสถานะไว้ในหน้า Home แล้วเปิดหน้า Profile
+                      if (result == true) {
+                        if (!mounted) return;
+
+                        setState(() {
+                          _hasLoggedIn = true;
+                        });
+
+                        _goToProfileScreen();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // ปุ่ม Register
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+
+                      // เปิดหน้า Register และรอผลลัพธ์กลับมา
+                      // หน้า register_screen.dart ต้อง Navigator.pop(context, true); ตอนสมัครสำเร็จ
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
+
+                      print("REGISTER RESULT FROM REGISTER SCREEN: $result");
+                      print(
+                        "AFTER REGISTER EMAIL: ${UserManager().currentEmail}",
+                      );
+                      print(
+                        "AFTER REGISTER PROFILE ID: ${UserManager().profileId}",
+                      );
+
+                      // ถ้า Register สำเร็จ ให้จำสถานะไว้ในหน้า Home แล้วเปิดหน้า Profile
+                      if (result == true) {
+                        if (!mounted) return;
+
+                        setState(() {
+                          _hasLoggedIn = true;
+                        });
+
+                        _goToProfileScreen();
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      side: const BorderSide(
+                        color: Colors.blue,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      "Register",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // ปุ่ม Cancel
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+
+      // แสดงหน้าตามแท็บที่เลือก
       body: _buildBody(),
+
+      // แถบนำทางด้านล่าง
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
@@ -220,11 +395,14 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         unselectedItemColor: Colors.grey,
         showSelectedLabels: false,
         showUnselectedLabels: false,
+
+        // เมื่อกดแท็บด้านล่าง จะเปลี่ยนหน้า
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
+
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_filled),
@@ -247,18 +425,19 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     );
   }
 
+  // ฟังก์ชันเลือกหน้าที่จะแสดงตาม BottomNavigationBar
   Widget _buildBody() {
     if (_selectedIndex == 0) {
       return _buildHomePage();
     } else if (_selectedIndex == 1) {
-      // 🌟 เปลี่ยนจากการ Push หน้าใหม่ เป็นการดึงหน้า CategoryScreen มาแสดงในแท็บเลย
       return CategoryScreen(
         categories: categories,
-        products: products,
+        products: const [],
         selectedCategory: selectedCategory,
         onCategorySelect: (value) {
           setState(() {
             selectedCategory = value.isEmpty ? null : value;
+            _selectedIndex = 0;
           });
         },
       );
@@ -269,18 +448,22 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     }
   }
 
-
+  // หน้า Home หลัก
   Widget _buildHomePage() {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 18),
 
+            // แถวช่องค้นหาและปุ่ม Account
             Row(
               children: [
+                // ปุ่มย้อนกลับจากโหมดค้นหา
                 if (_isSearching)
                   IconButton(
                     icon: const Icon(Icons.arrow_back),
@@ -291,18 +474,27 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                       });
                     },
                   ),
+
+                // ช่องค้นหาสินค้า
                 Expanded(
                   child: Container(
                     height: 52,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEFEFEF),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.search, color: Colors.grey),
+                        const Icon(
+                          Icons.search,
+                          color: Colors.grey,
+                        ),
+
                         const SizedBox(width: 10),
+
                         Expanded(
                           child: _isSearching
                               ? TextField(
@@ -326,11 +518,15 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 "Search for products",
-                                style: TextStyle(color: Colors.grey),
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           ),
                         ),
+
+                        // ปุ่มล้างคำค้นหา
                         if (_isSearching)
                           IconButton(
                             onPressed: () {
@@ -345,22 +541,20 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                     ),
                   ),
                 ),
+
                 const SizedBox(width: 14),
 
+                // ปุ่ม Account มุมขวาบน
+                // ถ้า Login แล้ว จะเปิดหน้า Profile ทันที
+                // ถ้ายังไม่ Login จะเปิด Bottom Sheet ให้เลือก Login/Register
                 GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                        const ProfileScreen(username: '', email: ''),
-                      ),
-                    );
-                  },
+                  onTap: _openAccountPage,
                   child: const CircleAvatar(
                     radius: 24,
-                    backgroundImage: NetworkImage(
-                      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300",
+                    backgroundColor: Color(0xFFD8ECFF),
+                    child: Icon(
+                      Icons.person,
+                      color: Color(0xFF4D93CF),
                     ),
                   ),
                 ),
@@ -369,51 +563,33 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
 
             const SizedBox(height: 28),
 
-            // 🔥 แสดง header เฉพาะ Search และ Category เท่านั้น
-            if (_isSearching || _searchController.text.isNotEmpty || selectedCategory != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    selectedCategory != null
-                        ? selectedCategory!
-                        : "Search Results",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  // 🔥 แสดง See all เฉพาะ Search เท่านั้น
-                  if (selectedCategory == null)
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AllProductsScreen(
-                              products: filteredProducts,
-                            ),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        "See all",
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                ],
+            // แสดงหัวข้อตอนค้นหา หรือเลือกหมวดหมู่
+            if (_isSearching ||
+                _searchController.text.isNotEmpty ||
+                selectedCategory != null)
+              Text(
+                selectedCategory != null ? selectedCategory! : "Search Results",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
 
             const SizedBox(height: 16),
 
+            // แสดงหมวดหมู่ตอนที่ไม่ได้ค้นหา
             if (!_isSearching && _searchController.text.isEmpty) ...[
               const Text(
                 "Categories",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+
               const SizedBox(height: 10),
 
+              // รายการหมวดหมู่แบบเลื่อนแนวนอน
               SizedBox(
                 height: 90,
                 child: ListView.separated(
@@ -429,50 +605,72 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
               const SizedBox(height: 20),
             ],
 
-            // 🌟 ลบ Expanded อันเดิมทิ้ง แล้วใช้อันนี้แทนครับ (ดึงจาก Firebase)
+            // ดึงสินค้าจาก Firebase แบบ real-time
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('products').snapshots(),
+                stream: FirebaseFirestore.instance
+                    .collection('products')
+                    .snapshots(),
                 builder: (context, snapshot) {
-                  // 1. ระหว่างรอโหลดข้อมูลจากเน็ต
+                  // กำลังโหลดข้อมูลจาก Firebase
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  // 2. ถ้าไม่มีสินค้าในฐานข้อมูลเลย
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(
-                      child: Text("ยังไม่มีสินค้าในร้าน", style: TextStyle(color: Colors.grey)),
+                      child: CircularProgressIndicator(),
                     );
                   }
 
-                  // 3. แปลงข้อมูลทั้งหมดจาก Firebase ให้กลายเป็น ShopItemModel ของจริง
+                  // กรณีไม่มีสินค้าในร้าน
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "No products in store",
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  }
+
+                  // แปลงข้อมูลจาก Firestore เป็น ShopItemModel
                   final allRealProducts = snapshot.data!.docs
                       .map((doc) => ShopItemModel.fromFirestore(doc))
                       .toList();
 
-                  // 🌟 4. ระบบกรองข้อมูล (ทำงานร่วมกับช่องค้นหา และปุ่มหมวดหมู่)
-                  final String query = _searchController.text.trim().toLowerCase();
-                  final filteredRealProducts = allRealProducts.where((product) {
-                    // เช็คหมวดหมู่ (ถ้าไม่ได้เลือกคือผ่านหมด)
-                    final matchCategory = selectedCategory == null || product.category == selectedCategory;
-                    // เช็คคำค้นหา
-                    final matchSearch = query.isEmpty || product.name.toLowerCase().contains(query);
+                  // ดึงคำค้นหาจากช่อง Search
+                  final String query =
+                  _searchController.text.trim().toLowerCase();
+
+                  // กรองสินค้าตามหมวดหมู่และคำค้นหา
+                  final filteredRealProducts =
+                  allRealProducts.where((product) {
+                    final matchCategory =
+                        selectedCategory == null ||
+                            product.category == selectedCategory;
+
+                    final matchSearch =
+                        query.isEmpty ||
+                            product.name.toLowerCase().contains(query);
 
                     return matchCategory && matchSearch;
                   }).toList();
 
-                  // ถ้าค้นหาแล้วไม่เจออะไรเลย
+                  // กรณีค้นหาแล้วไม่เจอสินค้า
                   if (filteredRealProducts.isEmpty) {
                     return const Center(
-                      child: Text("ไม่พบสินค้าที่คุณค้นหา", style: TextStyle(color: Colors.grey)),
+                      child: Text(
+                        "No products found",
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
                     );
                   }
 
-                  // 5. วาดตารางสินค้าด้วยข้อมูลจริงที่ผ่านการกรองแล้ว
+                  // แสดงสินค้าเป็น GridView
                   return GridView.builder(
                     itemCount: filteredRealProducts.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 18,
                       mainAxisSpacing: 18,
@@ -483,22 +681,28 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          // 🌟 ตรงนี้สำคัญ: ส่ง "ของจริง" ไปที่หน้ารายละเอียด
+                          // ไปหน้ารายละเอียดสินค้า
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(product: realProduct),
+                              builder: (context) => ProductDetailScreen(
+                                product: realProduct,
+                              ),
                             ),
                           );
                         },
                         child: ProductCard(
                           name: realProduct.name,
-                          price: "฿${realProduct.price}", // เปลี่ยนเป็นแสดงค่าเงินบาท
-                          rating: realProduct.rating.toInt(), // ดึงดาวของจริง
-                          isFavorite: false, // ระบบ Favorite ของจริงค่อยทำทีหลัง
-                          imageUrl: realProduct.imagePath ?? "", // ดึงรูปภาพจริง
+                          price: "฿${realProduct.price}",
+                          rating: realProduct.rating.toInt(),
+                          isFavorite: realProduct.isFavorite,
+                          imageUrl: realProduct.imagePath ?? "",
                           onFavoriteToggle: () {
-                            _productManager.toggleFavorite(realProduct.id, realProduct.isFavorite);
+                            // อัปเดต Favorite ลง Firebase
+                            _productManager.toggleFavorite(
+                              realProduct.id,
+                              realProduct.isFavorite,
+                            );
                           },
                         ),
                       );
@@ -513,10 +717,19 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     );
   }
 
+  // หน้า Cart ตอนนี้เป็น placeholder
   Widget _buildCartPage() {
-    return const Center(child: Text("Cart Page"));
+    return const Center(
+      child: Text(
+        "Cart Page",
+        style: TextStyle(
+          color: Colors.grey,
+        ),
+      ),
+    );
   }
 
+  // หน้า Favorite
   Widget _buildFavoritePage() {
     return SafeArea(
       child: Padding(
@@ -524,76 +737,99 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🌟 สร้างแถว (Row) เพื่อใส่ปุ่มย้อนกลับคู่กับหัวข้อ
+            // หัวข้อหน้า Favorite
             const Text(
-              "Favorite (รายการโปรด)",
+              "Favorites",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 20),
 
-            // ... โค้ด Expanded(child: StreamBuilder...) ของเดิมอยู่ต่อจากตรงนี้
-
-            // 🌟 ใช้ StreamBuilder ดึงข้อมูลจริงจาก Firebase
+            // ดึงข้อมูลสินค้าที่กด Favorite จาก Firebase
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('products').snapshots(),
+                stream: FirebaseFirestore.instance
+                    .collection('products')
+                    .snapshots(),
                 builder: (context, snapshot) {
+                  // กำลังโหลดข้อมูล
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(
-                      child: Text("ไม่มีสินค้าในร้าน", style: TextStyle(color: Colors.grey)),
+                      child: CircularProgressIndicator(),
                     );
                   }
 
-                  // 🌟 ค้นหาเฉพาะสินค้าที่มีคำสั่ง isFavorite = true ใน Firebase
+                  // ไม่มีสินค้าในร้าน
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "No products in store",
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  }
+
+                  // กรองเฉพาะสินค้าที่ isFavorite = true
                   final favoriteDocs = snapshot.data!.docs.where((doc) {
                     final data = doc.data() as Map<String, dynamic>;
-                    return data['isFavorite'] == true; // กรองเอาเฉพาะอันที่กดหัวใจ
+                    return data['isFavorite'] == true;
                   }).toList();
 
+                  // ยังไม่มีสินค้า Favorite
                   if (favoriteDocs.isEmpty) {
                     return const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.favorite_border, size: 48, color: Colors.grey),
+                          Icon(
+                            Icons.favorite_border,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
                           SizedBox(height: 8),
-                          Text("คุณยังไม่มีสินค้าที่ถูกใจ", style: TextStyle(color: Colors.grey)),
+                          Text(
+                            "No favorite products yet",
+                            style: TextStyle(
+                              color: Colors.grey,
+                            ),
+                          ),
                         ],
                       ),
                     );
                   }
 
-                  // แปลงข้อมูลที่กรองแล้วให้เป็น ShopItemModel
+                  // แปลงข้อมูล Favorite เป็น ShopItemModel
                   final favoriteProducts = favoriteDocs
                       .map((doc) => ShopItemModel.fromFirestore(doc))
                       .toList();
 
-                  // วาดการ์ดสินค้า
+                  // แสดงสินค้า Favorite
                   return GridView.builder(
                     itemCount: favoriteProducts.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 18,
                       mainAxisSpacing: 18,
-                      childAspectRatio: 0.52, // 🌟 ใช้ 0.52 เพื่อกันข้อความล้นกรอบเหลืองดำ
+                      childAspectRatio: 0.52,
                     ),
                     itemBuilder: (context, index) {
                       final product = favoriteProducts[index];
 
                       return GestureDetector(
                         onTap: () {
-                          // กดแล้วไปหน้ารายละเอียด
+                          // ไปหน้ารายละเอียดสินค้า
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(product: product),
+                              builder: (context) => ProductDetailScreen(
+                                product: product,
+                              ),
                             ),
                           );
                         },
@@ -601,12 +837,14 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                           name: product.name,
                           price: "฿${product.price}",
                           rating: product.rating.toInt(),
-                          // 🌟 1. เปลี่ยนให้ดึงค่าหัวใจจริงๆ จาก Firebase มาโชว์
                           isFavorite: product.isFavorite,
                           imageUrl: product.imagePath ?? "",
                           onFavoriteToggle: () {
-                            // 🌟 2. ลบ SnackBar ทิ้ง แล้วสั่งอัปเดตค่าลง Firebase ทันทีที่กด
-                            _productManager.toggleFavorite(product.id, product.isFavorite);
+                            // อัปเดต Favorite ลง Firebase
+                            _productManager.toggleFavorite(
+                              product.id,
+                              product.isFavorite,
+                            );
                           },
                         ),
                       );
@@ -617,6 +855,161 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// การ์ดสินค้า
+// ใช้แสดงรูปสินค้า ชื่อสินค้า ราคา คะแนนดาว และปุ่ม Favorite
+class ProductCard extends StatelessWidget {
+  final String name;
+  final String price;
+  final int rating;
+  final bool isFavorite;
+  final String imageUrl;
+  final VoidCallback onFavoriteToggle;
+
+  const ProductCard({
+    super.key,
+    required this.name,
+    required this.price,
+    required this.rating,
+    required this.isFavorite,
+    required this.imageUrl,
+    required this.onFavoriteToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // กล่องหลักของการ์ดสินค้า
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ส่วนรูปสินค้าและปุ่ม Favorite
+          Expanded(
+            child: Stack(
+              children: [
+                // รูปสินค้า
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
+                  child: imageUrl.isNotEmpty
+                      ? Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+
+                    // ถ้าโหลดรูปไม่ได้ ให้แสดง icon แทน
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: const Color(0xFFEFEFEF),
+                        child: const Center(
+                          child: Icon(
+                            Icons.image_not_supported,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                      : Container(
+                    color: const Color(0xFFEFEFEF),
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ปุ่มหัวใจ Favorite อยู่มุมขวาบนของรูป
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: GestureDetector(
+                    onTap: onFavoriteToggle,
+                    child: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: Colors.redAccent,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ส่วนข้อมูลสินค้าใต้รูป
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ชื่อสินค้า
+                Text(
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                // ราคาสินค้า
+                Text(
+                  price,
+                  style: const TextStyle(
+                    color: Color(0xFF4D93CF),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                // คะแนนดาวสินค้า
+                Row(
+                  children: List.generate(
+                    5,
+                        (index) => Icon(
+                      Icons.star,
+                      size: 14,
+                      color: index < rating
+                          ? Colors.amber
+                          : Colors.grey.shade300,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,38 +1,46 @@
 // หน้าล็อกอิน
 
 import 'package:flutter/material.dart';
-import 'package:jimjaew_app/User/user_manager.dart';
+import 'package:jimjaew_app/user/user_manager.dart';
 import 'package:jimjaew_app/components/app_logo.dart';
-import 'package:jimjaew_app/main.dart';
 import 'package:jimjaew_app/register/register_screen.dart';
 
-class LoginScreen extends StatefulWidget {  //ทำไมใช้ StatefulWidget: เพราะหน้าจอนี้ "มีการเปลี่ยนแปลง" (Dynamic) ครับ เช่น ตอนผู้ใช้กดปุ่ม หน้าจอต้องเปลี่ยนจากฟอร์มกรอกข้อมูล กลายเป็นโชว์ไอคอนกำลังโหลดหมุนๆ (CircularProgressIndicator) ถ้าใช้ StatelessWidget มันจะเปลี่ยนหน้าตาแบบนี้ไม่ได้ครับ
+class LoginScreen extends StatefulWidget {
+  // ทำไมใช้ StatefulWidget:
+  // เพราะหน้าจอนี้มีการเปลี่ยนแปลง เช่น ตอนผู้ใช้กดปุ่ม Login
+  // หน้าจอต้องเปลี่ยนเป็น Loading ได้ ถ้าใช้ StatelessWidget จะทำแบบนี้ไม่ได้
   const LoginScreen({super.key});
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();   // key เอาไว้เช็ค validation ของฟอร์ม
+  final _formKey = GlobalKey<FormState>(); // key เอาไว้เช็ค validation ของฟอร์ม
+
   // controller เอาไว้ดึงค่าที่ user พิมพ์
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _userManager = UserManager();  // ตัวเรียก API login
+
+  // ตัวเรียก API login
+  final _userManager = UserManager();
 
   Future<void>? _loginResult;
 
   Future<void> _login(String email, String password) async {
     // ยิง API
     final result = await _userManager.login(email, password);
+
     if (!mounted) return;
-    // ถ้าล็อกอินสำเร็จ ไปหน้า main
+
+    // ถ้าล็อกอินสำเร็จ
     if (result != null && result.isSuccess) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MainScreen(profileId: result.profileId ?? ''),
-        ),
-      );
+      // สำคัญมาก:
+      // ไม่ใช้ pushReplacement ไป MainScreen แล้ว
+      // เพราะ ShopHomeScreen กำลังรอค่า true จากหน้านี้อยู่
+      // ถ้า pushReplacement จะทำให้หน้า Home ไม่รู้ว่า Login สำเร็จ
+      Navigator.pop(context, true);
+      return;
     } else {
       // ถ้าล้มเหลว โชว์ dialog แจ้ง error
       await showDialog(
@@ -52,6 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
+
   // ปิด controller กัน memory leak
   @override
   void dispose() {
@@ -60,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  //  ฟังก์ชันตกแต่งช่อง input
+  // ฟังก์ชันตกแต่งช่อง input
   InputDecoration customInputDecoration({
     required String hintText,
     required IconData icon,
@@ -68,28 +77,35 @@ class _LoginScreenState extends State<LoginScreen> {
     return InputDecoration(
       // ไอคอนหน้าช่อง
       prefixIcon: Icon(icon, color: Colors.grey),
-      // hint  username / password
+
+      // hint username / password
       hintText: hintText,
+
       // style hint
       hintStyle: const TextStyle(
         color: Colors.grey,
         fontWeight: FontWeight.w600,
       ),
+
       // พื้นหลังช่อง
       filled: true,
       fillColor: const Color(0xFFE9E9EE),
+
       // padding ในช่อง
       contentPadding: const EdgeInsets.symmetric(vertical: 18),
+
       // ขอบโค้ง ไม่มีเส้น
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
+
       // ตอน focus
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.blue, width: 1.2),
       ),
+
       // ตอน error
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -102,7 +118,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
-      body: FutureBuilder(  //ว่าตอนนี้สถานะคือ waiting (รอ) หรือเสร็จแล้ว ทำให้เราโชว์วงกลมโหลดรอ (CircularProgressIndicator)
+      body: FutureBuilder(
+        // ว่าตอนนี้สถานะคือ waiting หรือเสร็จแล้ว
+        // ทำให้เราโชว์วงกลมโหลดรอได้
         future: _loginResult,
         builder: (context, snapshot) {
           // ถ้ากำลัง login แสดง loading
@@ -118,29 +136,34 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             );
           }
+
           // ถ้ามี error
           if (snapshot.hasError) {
             return Center(child: Text(snapshot.error.toString()));
           }
 
           return SafeArea(
-            child: SingleChildScrollView( //คือ "Bottom Overflowed" (แถบสีเหลืองดำคาดหน้าจอ) เวลาผู้ใช้กดพิมพ์ข้อความแล้ว "คีย์บอร์ดมือถือเด้งขึ้นมาบังจอ"
+            child: SingleChildScrollView(
+              // กัน Bottom Overflowed เวลาคีย์บอร์ดเด้งขึ้นมาบังจอ
               child: SizedBox(
                 height: MediaQuery.of(context).size.height,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 22),
-                  child: Form( //เป็นการเอาเครื่องข่าย (Form) ไปคลุมกล่องข้อความไว้ เพื่อให้มันทำงานร่วมกับ _formKey ที่เราสร้างไว้ข้างบนได้
+                  child: Form(
+                    // เอา Form ไปคลุมช่องกรอก เพื่อให้ทำงานร่วมกับ _formKey ได้
                     key: _formKey,
                     child: Column(
                       children: [
                         const SizedBox(height: 70),
-                        //  โลโก้
+
+                        // โลโก้
                         Center(
                           child: AppLogo(width: 350, height: 300),
                         ),
+
                         const SizedBox(height: 20),
 
-                        // ช่อง username (email)
+                        // ช่อง username หรือ email
                         TextFormField(
                           controller: _emailController,
                           decoration: customInputDecoration(
@@ -150,23 +173,27 @@ class _LoginScreenState extends State<LoginScreen> {
                           keyboardType: TextInputType.emailAddress,
                           autocorrect: false,
                           textCapitalization: TextCapitalization.none,
+
                           // validation
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return "กรุณากรอกอีเมล";
                             }
+
                             if (!value.contains("@")) {
                               return "กรุณากรอกอีเมลให้ถูกต้อง";
                             }
+
                             return null;
                           },
                         ),
+
                         const SizedBox(height: 35),
 
                         // ช่อง password
                         TextFormField(
                           controller: _passwordController,
-                          obscureText: true, // ซ่อนรหัส  จุดกลมๆ
+                          obscureText: true, // ซ่อนรหัสเป็นจุดกลม ๆ
                           decoration: customInputDecoration(
                             hintText: "password",
                             icon: Icons.lock,
@@ -175,9 +202,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (value == null || value.isEmpty) {
                               return "กรุณากรอกรหัสผ่าน";
                             }
+
                             return null;
                           },
                         ),
+
                         const SizedBox(height: 35),
 
                         // ปุ่ม Login
@@ -189,7 +218,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               // เช็คก่อนว่ากรอกครบมั้ย
                               if (_formKey.currentState!.validate()) {
                                 // เรียก login
-                                setState(() { //setState คือการตะโกนบอกแอปว่า "ข้อมูลเปลี่ยนแล้วนะ วาดหน้าจอใหม่เดี๋ยวนี้!"
+                                setState(() {
+                                  // setState คือการบอกแอปว่า ข้อมูลเปลี่ยนแล้ว ให้วาดหน้าจอใหม่
                                   _loginResult = _login(
                                     _emailController.text.trim(),
                                     _passwordController.text.trim(),
@@ -197,7 +227,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 });
                               }
                             },
-
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF4D93CF),
                               foregroundColor: Colors.white,
@@ -206,7 +235,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-
                             child: const Text(
                               "Login",
                               style: TextStyle(
@@ -216,6 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 18),
 
                         // ปุ่มไปหน้า Register
