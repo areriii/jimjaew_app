@@ -1,6 +1,9 @@
+//
+
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/model/product_model.dart';
 import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
+import 'package:jimjaew_app/products/shop_item_model.dart';
 
 class AllProductsScreen extends StatelessWidget {
   final List<Map<String, dynamic>> products;
@@ -48,12 +51,16 @@ class AllProductsScreen extends StatelessWidget {
                     // 🔴 โค้ดใหม่ที่ถูกต้อง ✅
                     MaterialPageRoute(
                       builder: (context) => ProductDetailScreen(
-                        name: product["name"] ?? "",
-                        price: product["price"] ?? "",
-                        rating: product["rating"] ?? 0,
-                        isFavorite: product["favorite"] ?? false,
-                        imageUrl: product["image"] ?? "",
-                        description: product["description"] ?? "",
+                        // แพ็กข้อมูลใส่กล่อง ShopItemModel ก่อนส่งไปหน้า Detail
+                        product: ShopItemModel(
+                          id: 'mock_id', // ใส่ ID จำลอง
+                          name: product["name"] ?? "ไม่มีชื่อ",
+                          // แปลงราคาให้กลายเป็นตัวเลขทศนิยม
+                          price: double.tryParse(product["price"].toString()) ?? 0.0,
+                          stock: 10, // ใส่สต็อกจำลอง
+                          imagePath: null,
+                          category: 'Shirt',
+                        ),
                       ),
                     )
                 );

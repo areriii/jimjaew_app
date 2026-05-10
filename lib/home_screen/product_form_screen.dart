@@ -1,3 +1,4 @@
+// เพิ่มสินค้า
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -26,6 +27,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   bool _isLoading = false;
   String? _savedImagePath;
 
+  // 🌟 1. เพิ่มตัวแปรเพื่อเก็บหมวดหมู่ที่ถูกเลือก และรายการหมวดหมู่ทั้งหมด
+  String _selectedCategory = 'Shirt'; // ตั้งค่าเริ่มต้นเป็น Shirt
+  final List<String> _categories = ['Shirt', 'Pants', 'Glasses', 'Shoes', 'Watch'];
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +38,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _priceController = TextEditingController(text: isEditMode ? widget.product!.price.toString() : '');
     _stockController = TextEditingController(text: isEditMode ? widget.product!.stock.toString() : '');
     _savedImagePath = widget.product?.imagePath;
+
+    // 🌟 2. ถ้าเป็นการกด "แก้ไขสินค้า" ให้ดึงหมวดหมู่เดิมจาก Firebase มาแสดงในกล่อง Dropdown
+    if (isEditMode) {
+      if (_categories.contains(widget.product!.category)) {
+        _selectedCategory = widget.product!.category;
+      }
+    }
   }
 
   Future<void> _saveData() async {
@@ -48,10 +60,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           'name': name,
           'price': price,
           'stock': stock,
-          'image_path': _savedImagePath,
+          'imagePath': _savedImagePath,
+          // 🌟 3. ส่งข้อมูลหมวดหมู่ไปอัปเดตด้วย
+          'category': _selectedCategory,
         });
       } else {
-        await _productManager.addProduct(name, price, stock, _savedImagePath);
+        // 🌟 4. ส่งข้อมูลหมวดหมู่แนบไปตอนสร้างสินค้าใหม่
+        await _productManager.addProduct(name, price, stock, _savedImagePath, _selectedCategory);
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
@@ -138,6 +153,28 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 decoration: const InputDecoration(labelText: 'จำนวนสต็อก', border: OutlineInputBorder()),
                 validator: (value) => value == null || value.isEmpty ? 'กรุณากรอกจำนวน' : null,
               ),
+              const SizedBox(height: 16),
+
+              // 🌟 5. วาดกล่อง Dropdown สำหรับเลือกหมวดหมู่ให้แสดงบนหน้าจอ
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: 'หมวดหมู่สินค้า',
+                  border: OutlineInputBorder(),
+                ),
+                items: _categories.map((String category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedCategory = newValue!;
+                  });
+                },
+              ),
+
               const SizedBox(height: 20),
               Row(
                 children: [

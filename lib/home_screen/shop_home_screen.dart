@@ -1,3 +1,4 @@
+//หน้า โฮม
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jimjaew_app/model/product_model.dart';
@@ -5,7 +6,10 @@ import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/home_screen/profile_screen.dart';
 import 'package:jimjaew_app/home_screen/all_products_screen.dart';
 import 'category_screen.dart';
-
+import 'package:jimjaew_app/products/shop_item_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:jimjaew_app/products/shop_item_model.dart'; // เช็ค import ให้ตรงนะครับ
+import 'package:jimjaew_app/products/product_manager.dart';
 class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
 
@@ -16,7 +20,7 @@ class ShopHomeScreen extends StatefulWidget {
 class _ShopHomeScreenState extends State<ShopHomeScreen> {
   int _selectedIndex = 0;
   bool _isSearching = false;
-
+  final ProductManager _productManager = ProductManager();
   final TextEditingController _searchController = TextEditingController();
 
   // null = ยังไม่ได้เลือก category
@@ -247,25 +251,17 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     if (_selectedIndex == 0) {
       return _buildHomePage();
     } else if (_selectedIndex == 1) {
-      Future.microtask(() {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CategoryScreen(
-              categories: categories,
-              products: products,
-              selectedCategory: selectedCategory,
-              onCategorySelect: (value) {
-                setState(() {
-                  selectedCategory = value.isEmpty ? null : value;
-                });
-              },
-            ),
-          ),
-        );
-      });
-      return _buildHomePage(); // 👈 สำคัญ
-
+      // 🌟 เปลี่ยนจากการ Push หน้าใหม่ เป็นการดึงหน้า CategoryScreen มาแสดงในแท็บเลย
+      return CategoryScreen(
+        categories: categories,
+        products: products,
+        selectedCategory: selectedCategory,
+        onCategorySelect: (value) {
+          setState(() {
+            selectedCategory = value.isEmpty ? null : value;
+          });
+        },
+      );
     } else if (_selectedIndex == 2) {
       return _buildFavoritePage();
     } else {
@@ -275,8 +271,6 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
 
 
   Widget _buildHomePage() {
-    final displayProducts = filteredProducts;
-
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -435,62 +429,80 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
               const SizedBox(height: 20),
             ],
 
+            // 🌟 ลบ Expanded อันเดิมทิ้ง แล้วใช้อันนี้แทนครับ (ดึงจาก Firebase)
             Expanded(
-              child: displayProducts.isEmpty
-                 ? const Center(
-                      child: Text(
-                        "No products found",
-                     style: TextStyle(color: Colors.grey),
-                    ),
-                  )
-            : GridView.builder(
-                itemCount: displayProducts.length,
-                gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 18,
-                  mainAxisSpacing: 18,
-                  childAspectRatio: 0.58,
-                ),
-                itemBuilder: (context, index) {
-                  final product = displayProducts[index];
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('products').snapshots(),
+                builder: (context, snapshot) {
+                  // 1. ระหว่างรอโหลดข้อมูลจากเน็ต
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                  return GestureDetector(
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ProductDetailScreen(
-                                name: product["name"],
-                                price: product["price"],
-                                rating: product["rating"],
-                                isFavorite: product["favorite"],
-                                imageUrl: product["image"],
-                                description: product["description"],
-                              ),
+                  // 2. ถ้าไม่มีสินค้าในฐานข้อมูลเลย
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Text("ยังไม่มีสินค้าในร้าน", style: TextStyle(color: Colors.grey)),
+                    );
+                  }
+
+                  // 3. แปลงข้อมูลทั้งหมดจาก Firebase ให้กลายเป็น ShopItemModel ของจริง
+                  final allRealProducts = snapshot.data!.docs
+                      .map((doc) => ShopItemModel.fromFirestore(doc))
+                      .toList();
+
+                  // 🌟 4. ระบบกรองข้อมูล (ทำงานร่วมกับช่องค้นหา และปุ่มหมวดหมู่)
+                  final String query = _searchController.text.trim().toLowerCase();
+                  final filteredRealProducts = allRealProducts.where((product) {
+                    // เช็คหมวดหมู่ (ถ้าไม่ได้เลือกคือผ่านหมด)
+                    final matchCategory = selectedCategory == null || product.category == selectedCategory;
+                    // เช็คคำค้นหา
+                    final matchSearch = query.isEmpty || product.name.toLowerCase().contains(query);
+
+                    return matchCategory && matchSearch;
+                  }).toList();
+
+                  // ถ้าค้นหาแล้วไม่เจออะไรเลย
+                  if (filteredRealProducts.isEmpty) {
+                    return const Center(
+                      child: Text("ไม่พบสินค้าที่คุณค้นหา", style: TextStyle(color: Colors.grey)),
+                    );
+                  }
+
+                  // 5. วาดตารางสินค้าด้วยข้อมูลจริงที่ผ่านการกรองแล้ว
+                  return GridView.builder(
+                    itemCount: filteredRealProducts.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 18,
+                      mainAxisSpacing: 18,
+                      childAspectRatio: 0.58,
+                    ),
+                    itemBuilder: (context, index) {
+                      final realProduct = filteredRealProducts[index];
+
+                      return GestureDetector(
+                        onTap: () {
+                          // 🌟 ตรงนี้สำคัญ: ส่ง "ของจริง" ไปที่หน้ารายละเอียด
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetailScreen(product: realProduct),
+                            ),
+                          );
+                        },
+                        child: ProductCard(
+                          name: realProduct.name,
+                          price: "฿${realProduct.price}", // เปลี่ยนเป็นแสดงค่าเงินบาท
+                          rating: realProduct.rating.toInt(), // ดึงดาวของจริง
+                          isFavorite: false, // ระบบ Favorite ของจริงค่อยทำทีหลัง
+                          imageUrl: realProduct.imagePath ?? "", // ดึงรูปภาพจริง
+                          onFavoriteToggle: () {
+                            _productManager.toggleFavorite(realProduct.id, realProduct.isFavorite);
+                          },
                         ),
                       );
-
-                      if (result != null) {
-                        setState(() {
-                          product["favorite"] = result;
-                        });
-                      }
                     },
-                    child: ProductCard(
-                      name: product["name"],
-                      price: product["price"],
-                      rating: product["rating"],
-                      isFavorite: product["favorite"],
-                      imageUrl: product["image"],
-                      onFavoriteToggle: () {
-                        setState(() {
-                          product["favorite"] =
-                          !(product["favorite"] ?? false);
-                        });
-                      },
-                    ),
                   );
                 },
               ),
@@ -506,62 +518,103 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   }
 
   Widget _buildFavoritePage() {
-    final favoriteProducts =
-    products.where((p) => p["favorite"] == true).toList();
-
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
+            // 🌟 สร้างแถว (Row) เพื่อใส่ปุ่มย้อนกลับคู่กับหัวข้อ
             const Text(
-              "Favorite",
+              "Favorite (รายการโปรด)",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 20),
 
-            if (favoriteProducts.isEmpty)
-              const Expanded(
-                child: Center(
-                  child: Text("No favorite items"),
-                ),
-              )
-            else
+            // ... โค้ด Expanded(child: StreamBuilder...) ของเดิมอยู่ต่อจากตรงนี้
 
-              Expanded(
-                child: GridView.builder(
-                  itemCount: favoriteProducts.length,
-                  gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 18,
-                    mainAxisSpacing: 18,
-                    childAspectRatio: 0.58,
-                  ),
-                  itemBuilder: (context, index) {
-                    final product = favoriteProducts[index];
+            // 🌟 ใช้ StreamBuilder ดึงข้อมูลจริงจาก Firebase
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('products').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                    return ProductCard(
-                      name: product["name"],
-                      price: product["price"],
-                      rating: product["rating"],
-                      isFavorite: product["favorite"],
-                      imageUrl: product["image"],
-                      onFavoriteToggle: () {
-                        setState(() {
-                          product["favorite"] = false;
-                        });
-                      },
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Text("ไม่มีสินค้าในร้าน", style: TextStyle(color: Colors.grey)),
                     );
-                  },
-                ),
+                  }
+
+                  // 🌟 ค้นหาเฉพาะสินค้าที่มีคำสั่ง isFavorite = true ใน Firebase
+                  final favoriteDocs = snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return data['isFavorite'] == true; // กรองเอาเฉพาะอันที่กดหัวใจ
+                  }).toList();
+
+                  if (favoriteDocs.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.favorite_border, size: 48, color: Colors.grey),
+                          SizedBox(height: 8),
+                          Text("คุณยังไม่มีสินค้าที่ถูกใจ", style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // แปลงข้อมูลที่กรองแล้วให้เป็น ShopItemModel
+                  final favoriteProducts = favoriteDocs
+                      .map((doc) => ShopItemModel.fromFirestore(doc))
+                      .toList();
+
+                  // วาดการ์ดสินค้า
+                  return GridView.builder(
+                    itemCount: favoriteProducts.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 18,
+                      mainAxisSpacing: 18,
+                      childAspectRatio: 0.52, // 🌟 ใช้ 0.52 เพื่อกันข้อความล้นกรอบเหลืองดำ
+                    ),
+                    itemBuilder: (context, index) {
+                      final product = favoriteProducts[index];
+
+                      return GestureDetector(
+                        onTap: () {
+                          // กดแล้วไปหน้ารายละเอียด
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetailScreen(product: product),
+                            ),
+                          );
+                        },
+                        child: ProductCard(
+                          name: product.name,
+                          price: "฿${product.price}",
+                          rating: product.rating.toInt(),
+                          // 🌟 1. เปลี่ยนให้ดึงค่าหัวใจจริงๆ จาก Firebase มาโชว์
+                          isFavorite: product.isFavorite,
+                          imageUrl: product.imagePath ?? "",
+                          onFavoriteToggle: () {
+                            // 🌟 2. ลบ SnackBar ทิ้ง แล้วสั่งอัปเดตค่าลง Firebase ทันทีที่กด
+                            _productManager.toggleFavorite(product.id, product.isFavorite);
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
+            ),
           ],
         ),
       ),

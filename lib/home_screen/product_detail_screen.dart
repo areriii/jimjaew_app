@@ -1,357 +1,183 @@
+// หน้ากดซื้อสินค้า
+
+import 'dart:io';
 import 'package:flutter/material.dart';
+// 🔴 เช็คให้แน่ใจว่า import ถูกโฟลเดอร์นะครับ
+import 'package:jimjaew_app/products/shop_item_model.dart';
 
-// หน้าแสดงรายละเอียดสินค้า
+import '../products/order_manager.dart';
+
 class ProductDetailScreen extends StatefulWidget {
+  // ✅ เปลี่ยนมารับข้อมูลเป็นก้อน ShopItemModel
+  final ShopItemModel product;
 
-  // รับค่ามาจากหน้า Home (ตอนกดสินค้า)
-  final String name;
-  final String price;
-  final int rating;
-  final bool isFavorite;
-  final String imageUrl;
-  final String description;
-
-  const ProductDetailScreen({
-    super.key,
-    required this.name,
-    required this.price,
-    required this.rating,
-    required this.isFavorite,
-    required this.imageUrl,
-    required this.description,
-  });
+  const ProductDetailScreen({super.key, required this.product});
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-
-  // ขนาดที่เลือก (default = M)
-  String selectedSize = "M";
-
-  // สีที่เลือก (index)
-  int selectedColorIndex = 2;
-
-  // สถานะ favorite (หัวใจ)
-  late bool isFavorite;
-
-  // list ขนาด
-  final List<String> sizes = ["XS", "S", "M", "L", "XL"];
-
-  // list สี
-  final List<Color> colors = [
-    const Color(0xFF2DD4BF),
-    const Color(0xFF38BDF8),
-    const Color(0xFF083B5C),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-
-    // เอาค่า favorite จากหน้าก่อนมาใช้
-    isFavorite = widget.isFavorite;
-  }
-
-  // ฟังก์ชันสร้างดาว rating
-  Widget buildStarRating(int rating) {
-    return Row(
-      children: List.generate(5, (index) {
-        return Icon(
-          index < rating ? Icons.star : Icons.star_border,
-          color: Colors.amber,
-          size: 20,
-        );
-      }),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        Navigator.pop(context, isFavorite);
-      },
+    // ดึงข้อมูลสินค้ามาเก็บไว้ในตัวแปร item
+    final item = widget.product;
 
-      child:Scaffold(
-      // สีพื้นหลังด้านบน
-      backgroundColor: const Color(0xFFF6E7E5),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(item.name),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.shopping_cart))
+        ],
+      ),
+      body: ListView(
+        children: [
+          // 1. ส่วนรูปภาพ
+          Container(
+            height: 300,
+            width: double.infinity,
+            color: Colors.grey[100],
+            child: item.imagePath != null
+                ? Image.file(File(item.imagePath!), fit: BoxFit.cover)
+                : const Icon(Icons.image, size: 100, color: Colors.grey),
+          ),
 
-      body: SafeArea(
-        child: Column(
-          children: [
+          // 2. ส่วนรายละเอียด
+          // 2. ส่วนรายละเอียด
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "฿${item.price.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      item.stock > 0 ? "มีสินค้า : ${item.stock} ชิ้น" : "สินค้าหมด",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: item.stock > 10 ? Colors.green : (item.stock > 0 ? Colors.orange : Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
 
-            // 🔼 ส่วนรูปสินค้า
-            Expanded(
-              flex: 5,
-              child: Stack(
-                children: [
-
-                  // รูปสินค้า
-                  Container(
-                    width: double.infinity,
-                    color: const Color(0xFFD9D9D9),
-                    child: Image.network(
-                      widget.imageUrl,
-                      fit: BoxFit.contain,
-
-                      // ถ้ารูปโหลดไม่ได้
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Icon(Icons.image_not_supported, size: 50),
+                // 🌟 แถวโชว์สถิติดาวและรีวิวในหน้ารายละเอียด (เพิ่มใหม่ตรงนี้)
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    // วาดดาว 5 ดวงตามคะแนน (สุ่มวาดดาวเต็มดวง)
+                    Row(
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          index < item.rating.floor() ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                          size: 20,
                         );
-                      },
+                      }),
                     ),
-                  ),
-
-                  // ปุ่มย้อนกลับ
-                  Positioned(
-                    top: 22,
-                    left: 20,
-                    child: CircleAvatar(
-                      backgroundColor: const Color(0xFF62B0F6),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context, isFavorite);
-                        },
-                      ),
+                    const SizedBox(width: 8),
+                    Text(
+                      item.rating.toStringAsFixed(1), // เช่น 4.5
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            // 🔽 กล่องรายละเอียดด้านล่าง
-            Expanded(
-              flex: 6,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(28),
-                  ),
+                    const SizedBox(width: 8),
+                    Container(
+                      height: 15,
+                      width: 1,
+                      color: Colors.grey.shade400, // เส้นคั่นตรงกลางแบบเท่ๆ
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "ขายแล้ว ${item.reviewCount * 3} ชิ้น", // สุ่มยอดขายอิงจากจำนวนคนรีวิว
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
 
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                const Divider(height: 40, thickness: 1),
+                const Text(
+                  "รายละเอียดสินค้า",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "นี่คือรายละเอียดสินค้าจำลอง คุณสามารถเพิ่มคำอธิบายสินค้ายาวๆ ลงในฐานข้อมูล Firebase แล้วดึงมาแสดงตรงนี้ได้ในอนาคตครับ...",
+                  style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
 
-                      // ชื่อสินค้า + หัวใจ
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            widget.name,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          // ปุ่ม favorite
-                          IconButton(
-                            onPressed: () {
-                              setState(() {
-                                isFavorite = !isFavorite;
-                              });
-                            },
-                            icon: Icon(
-                              isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: isFavorite ? Colors.red : Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 6),
-
-                      // ราคา + rating
-                      Row(
-                        children: [
-                          Text(
-                            widget.price,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-
-                          // ดาว rating
-                          buildStarRating(widget.rating),
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // 🔹 Description
-                      const Text(
-                        "Description:",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      Text(
-                        widget.description,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black54,
-                          height: 1.5,
-                        ),
-                      ),
-
-                      const SizedBox(height: 28),
-
-                      // 🔹 Size
-                      const Text(
-                        "Size:",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // ปุ่มเลือก size
-                      Row(
-                        children: sizes.map((size) {
-                          final isSelected = selectedSize == size;
-
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedSize = size;
-                                });
-                              },
-
-                              child: Container(
-                                width: 46,
-                                height: 46,
-                                alignment: Alignment.center,
-
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? const Color(0xFF5B9DDB)
-                                      : const Color(0xFFAED0F0),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-
-                                child: Text(
-                                  size,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-
-                      const SizedBox(height: 28),
-
-                      // 🔹 Colors
-                      const Text(
-                        "Colors Available:",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // ปุ่มเลือกสี
-                      Row(
-                        children: List.generate(colors.length, (index) {
-                          final isSelected = selectedColorIndex == index;
-
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedColorIndex = index;
-                              });
-                            },
-
-                            child: Container(
-                              margin: const EdgeInsets.only(right: 12),
-                              width: 44,
-                              height: 44,
-
-                              decoration: BoxDecoration(
-                                color: colors[index],
-                                shape: BoxShape.circle,
-                              ),
-
-                              // ถ้าเลือกแล้วโชว์ ✔
-                              child: isSelected
-                                  ? const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 28,
-                              )
-                                  : null,
-                            ),
-                          );
-                        }),
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // 🔹 ปุ่ม Add To Cart
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-
-                        child: ElevatedButton(
-                          onPressed: () {},
-
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4D93CF),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-
-                          child: const Text(
-                            "Add To Cart",
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+      // 3. ปุ่มด้านล่าง
+      bottomNavigationBar: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(12.0),
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () { },
+                  icon: const Icon(Icons.add_shopping_cart, color: Colors.blue),
+                  label: const Text("เพิ่มลงรถเข็น", style: TextStyle(color: Colors.blue)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.blue),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  // 🌟 เพิ่ม async ตรงนี้
+                  onPressed: () async {
+                    // 🌟 โค้ดสร้างคำสั่งซื้อเมื่อกดปุ่ม
+                    final orderManager = OrderManager();
+                    // โยนชื่อสินค้า และ ราคา ส่งไปที่ Firebase
+                    await orderManager.addMyPurchase(item.name, item.price); // ส่งข้อมูลเข้าตะกร้าฉันเอง
+
+                    // โชว์แจ้งเตือนเด้งด้านล่างว่าซื้อสำเร็จแล้ว
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🎉 สั่งซื้อสำเร็จ! ไปเช็คที่หน้าคำสั่งซื้อของฉันได้เลย'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.payment, color: Colors.white),
+                  label: const Text("ซื้อสินค้า", style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 }

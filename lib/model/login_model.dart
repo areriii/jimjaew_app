@@ -1,3 +1,5 @@
+// ตัวเชื่อมล็อกอิน
+
 class LoginParam {
   final String username;  //final หมายถึง "ค่าคงที่ ห้ามเปลี่ยน" เมื่อเราดึงข้อมูลที่ผู้ใช้พิมพ์มาใส่กล่องนี้แล้ว
   final String password;

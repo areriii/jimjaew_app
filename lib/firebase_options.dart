@@ -65,4 +65,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'jimjaew-app.firebasestorage.app',
     iosBundleId: 'th.ac.bu.jimjaewapp.jimjaewApp',
   );
+
 }

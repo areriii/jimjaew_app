@@ -1,4 +1,7 @@
+//
+
 import 'package:flutter/material.dart';
+import 'dart:io';
 
 class ProductCard extends StatelessWidget {
   final String name;
@@ -34,17 +37,33 @@ class ProductCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(18),
-                child: Image.network(
+                // 🌟 อัปเกรดระบบวาดรูปภาพตรงนี้ครับ!
+                child: imageUrl.isEmpty
+                    ? const Center(
+                  // ถ้าไม่มีรูปเลย โชว์ไอคอนสีเทา
+                  child: Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
+                )
+                    : (imageUrl.startsWith('http')
+                // ถ้าเป็นข้อมูลจำลอง (ขึ้นด้วย http) ให้โหลดจากเน็ต
+                    ? Image.network(
                   imageUrl,
                   width: double.infinity,
                   height: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Icon(Icons.image_not_supported, size: 40),
-                    );
-                  },
-                ),
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                  ),
+                )
+                // ถ้าเป็นของจริง (รูปจากในมือถือ) ให้โหลดจาก File
+                    : Image.file(
+                  File(imageUrl),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                  ),
+                )),
               ),
               Positioned(
                 top: 10,
@@ -68,6 +87,8 @@ class ProductCard extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
+          maxLines: 1, // บังคับให้ชื่อมีแค่ 1 บรรทัดจะได้ไม่ล้น
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 6),
         Row(

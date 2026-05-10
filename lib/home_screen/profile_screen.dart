@@ -1,9 +1,15 @@
+//หน้า บัญชี ผู้ใช้
+
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/home_screen/help_center_screen.dart';
 import 'package:jimjaew_app/home_screen/order_screen.dart';
-import 'package:jimjaew_app/home_screen/product_link_screen.dart';
+import 'package:jimjaew_app/home_screen/trade_system_screen.dart';
 import 'package:jimjaew_app/home_screen/referral_screen.dart';
 import 'package:jimjaew_app/home_screen/shop_screen.dart';
+import 'package:jimjaew_app/home_screen/income_screen.dart';
+import 'package:jimjaew_app/home_screen/follow_manager.dart';
+import 'package:jimjaew_app/home_screen/seller_order_screen.dart';
+import 'package:jimjaew_app/home_screen/shop_home_screen.dart'; // เช็ค path ให้ตรงกับโฟลเดอร์ของคุณนะครับ
 
 void main() {
   runApp(const MyApp());
@@ -48,70 +54,113 @@ class ProfileScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildProfileHeader(context),
             _buildAlertBanner(),
             _buildMenuItems(context), // 🔴 ส่ง context เข้าไปเพื่อให้ปุ่ม Logout เรียก Pop-up ได้
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
   // 1. ส่วน Header แบบกำหนดเอง
-  Widget _buildHeader() {
+  // 🌟 ฟังก์ชันสำหรับวาดส่วนหัวโปรไฟล์ (รูปภาพ + อีเมล + ยอดผู้ติดตาม)
+  Widget _buildProfileHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
+      padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF4D93CF), Color(0xFF90CCEE)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        color: Colors.blue, // สีพื้นหลัง หรือถ้าใช้ Gradient ก็เปลี่ยนตรงนี้ได้ครับ
       ),
       child: Column(
         children: [
+          // แถวบนสุด (ปุ่ม Back + รูปเฟืองตั้งค่า)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Icon(Icons.arrow_back, color: Colors.white),
-              Icon(Icons.settings_outlined, color: Colors.white),
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ShopHomeScreen()), // ตรงนี้ใส่ชื่อคลาสหน้าแรกของคุณ
+                        (route) => false,
+                  );
+                }, // ใส่ Navigator.pop(context) ถ้าต้องการให้กดย้อนกลับได้
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings, color: Colors.white),
+                onPressed: () {},
+              ),
             ],
           ),
-          const SizedBox(height: 20),
+
+          // แถวที่สอง (รูปโปรไฟล์ + ข้อมูล)
           Row(
             children: [
+              // รูปโปรไฟล์
               const CircleAvatar(
                 radius: 40,
-                backgroundImage: NetworkImage(
-                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300'),
+                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'), // รูปจำลอง
               ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 🔴 จุดที่แก้ 3: นำตัวแปร username มาแสดงผล
-                  Text(
-                    username,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+              const SizedBox(width: 20), // ระยะห่าง
+
+              // ข้อมูลด้านขวา
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // อีเมล หรือ ชื่อ
+                    const Text(
+                      "อีเมล: user@example.com",
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      // 🔴 จุดที่แก้ 4: นำตัวแปร email มาแสดงผล
-                      Text(
-                        'อีเมล: $email',
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.copy, color: Colors.white70, size: 14),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 12), // ระยะห่างระหว่างชื่อกับสถิติ
+
+                    // 🌟 ส่วนที่เพิ่มใหม่: สถิติผู้ติดตาม
+                    Row(
+                      children: [
+                        // กล่องที่ 1: ผู้ติดตาม
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              "1,250", // ตัวเลขจำลอง
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                            ),
+                            Text(
+                              "ผู้ติดตาม",
+                              style: TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 24), // ระยะห่างระหว่าง 2 กล่อง
+
+                        // กล่องที่ 2: กำลังติดตาม
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 🌟 ใช้ ValueListenableBuilder มาครอบตัวเลขไว้
+                            // เพื่อให้มันคอยจ้องมองว่า FollowManager.followingCount เปลี่ยนหรือยัง
+                            ValueListenableBuilder<int>(
+                              valueListenable: FollowManager.followingCount,
+                              builder: (context, value, child) {
+                                return Text(
+                                  value.toString(), // โชว์ตัวเลขล่าสุด
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                );
+                              },
+                            ),
+                            const Text(
+                              "กำลังติดตาม",
+                              style: TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -119,7 +168,6 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
   // 2. แถบแจ้งเตือน
   Widget _buildAlertBanner() {
     return Container(
@@ -172,14 +220,15 @@ class ProfileScreen extends StatelessWidget {
               _buildListTile(Icons.assignment_outlined, 'คำสั่งซื้อของฉัน', const Color(0xFF4D93CF),(){
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const  OrderScreen()),
+                  MaterialPageRoute(builder: (context) =>   OrderScreen()),
                 );
               }),
               _buildDivider(),
-              _buildListTile(Icons.link, 'ลิงก์สินค้า', const Color(0xFF4D93CF), () {
+              _buildListTile(Icons.swap_calls, 'ระบบการเทรดสินค้า', const Color(0xFF4D93CF), () {
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ProductLinkScreen()));
+                  context,
+                  MaterialPageRoute(builder: (context) => const TradeSystemScreen()),
+                );
               }),
               _buildDivider(),
               _buildListTile(Icons.people_outline, 'แนะนำเพื่อน', const Color(0xFF4D93CF), () {
@@ -191,11 +240,17 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          color: Colors.white,
-          child: _buildListTile(Icons.help_outline, 'ศูนย์ช่วยเหลือ', const Color(0xFF4D93CF), () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpCenterScreen()));
-          }),
+        ListTile(
+          leading: const Icon(Icons.help_outline, color: Colors.blue),
+          title: const Text('ศูนย์ช่วยเหลือ'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            // 🌟 สั่งให้กระโดดไปหน้าศูนย์ช่วยเหลือ
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HelpCenterScreen()),
+            );
+          },
         ),
         const SizedBox(height: 30),
 
@@ -251,7 +306,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   // 4. แถบเมนูด้านล่าง
-  Widget _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar(BuildContext context) {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       selectedItemColor: const Color(0xFF4D93CF),
@@ -261,6 +316,23 @@ class ProfileScreen extends StatelessWidget {
       unselectedFontSize: 12,
       backgroundColor: Colors.white,
       elevation: 8,
+      onTap: (int index) {
+        // 🌟 ถ้ากดปุ่มที่ 2 (Index 1 คือ "คำสั่งซื้อ")
+        if (index == 1) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SellerOrderScreen()), // วิ่งไปหน้าคำสั่งซื้อจากลูกค้า
+          );
+        }
+        // 🌟 ถ้ากดปุ่มที่ 3 (Index 2 คือ "รายได้" - อันนี้ของเดิมที่เราทำไว้)
+        else if (index == 2) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => IncomeScreen()),
+          );
+        }
+      },
+      // 🌟 ...ถึงตรงนี้ครับ
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), label: 'ข้อเสนอ'),
         BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: 'คำสั่งซื้อ'),

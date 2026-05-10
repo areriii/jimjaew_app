@@ -1,3 +1,5 @@
+//หน้าจัดการ สินค้า
+
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/home_screen/product_form_screen.dart';
 import 'package:jimjaew_app/products/product_manager.dart';
@@ -56,7 +58,7 @@ class _ProductScreenState extends State<ProductScreen> {
         },
       ),
       floatingActionButton: _productView == ProductView.grid
-          ? const SizedBox()
+          ? null
           : FloatingActionButton(
         backgroundColor:  Colors.blue,
         foregroundColor: Colors.white,
