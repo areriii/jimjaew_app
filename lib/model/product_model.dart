@@ -89,8 +89,6 @@ class ProductCard extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
-          maxLines: 1, // บังคับให้ชื่อมีแค่ 1 บรรทัดจะได้ไม่ล้น
-          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 6),
         Row(
