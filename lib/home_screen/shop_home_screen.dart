@@ -981,7 +981,7 @@ class ProductCard extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
-                // ราคาสินค้า
+                // ราคาสินค้าf
                 Text(
                   price,
                   style: const TextStyle(

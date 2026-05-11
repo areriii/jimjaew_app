@@ -504,7 +504,7 @@ class ProfileScreen extends StatelessWidget {
                 // เคลียร์ข้อมูลผู้ใช้ใน UserManager
                 await UserManager().logout();
 
-                // กลับไปหน้า Home ใหม่หลัง logout
+                // กลับไปหน้า Home ใหม่หลัง logoutf
                 // หลังจากนี้กด Account จะขึ้น Login/Register ตามปกติ
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(

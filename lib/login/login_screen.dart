@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // ไอคอนหน้าช่อง
       prefixIcon: Icon(icon, color: Colors.grey),
 
-      // hint username / password
+      // hint username / passwordf
       hintText: hintText,
 
       // style hint
