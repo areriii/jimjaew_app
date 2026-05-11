@@ -12,6 +12,7 @@ class OrderModel {
 
   OrderModel({
     required this.id,
+
     required this.productName,
     required this.totalPrice,
     required this.createdAt,
