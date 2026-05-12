@@ -1,28 +1,19 @@
-// โมเดลสำหรับรับผลลัพธ์จาก API สมัครสมาชิก
-// ใช้เก็บสถานะว่าสมัครสำเร็จหรือไม่ และข้อความจาก server
+// ไฟล์ lib/model/register_model.dart
 
-class RegisterResponse {
+class RegisterModel {
   final bool isSuccess;
-  final String message;
+  final String? message;
 
-  RegisterResponse({
+  RegisterModel({
     required this.isSuccess,
-    required this.message,
+    this.message,
   });
 
-  // แปลงข้อมูล JSON จาก API ให้เป็น RegisterResponse
-  factory RegisterResponse.fromJson(Map<String, dynamic> json) {
-    return RegisterResponse(
-      // รองรับหลายชื่อ field เผื่อ API ส่งชื่อไม่เหมือนกัน
-      isSuccess: json['isSuccess'] == true ||
-          json['success'] == true ||
-          json['status'] == true,
-
-      // กัน error กรณี message เป็น null หรือไม่มี field message
-      message: json['message']?.toString() ??
-          json['msg']?.toString() ??
-          json['error']?.toString() ??
-          'No message from server',
+  factory RegisterModel.fromJson(Map<String, dynamic> json) {
+    return RegisterModel(
+      // 🌟 แก้ตรงนี้! ให้มันรู้จักคำว่า is_success ที่เซิร์ฟเวอร์ส่งมา
+      isSuccess: json['is_success'] ?? json['isSuccess'] ?? false,
+      message: json['message'],
     );
   }
 }

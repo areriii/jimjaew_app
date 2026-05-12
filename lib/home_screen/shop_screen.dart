@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/products/product_manager.dart';
 import 'package:jimjaew_app/products/shop_item_model.dart';
-// 🔴 เช็ค Import ให้ตรงกับโฟลเดอร์ของคุณด้วยนะครับ (home_screen หรือ products)
+// 🔴 เช็ค Import ให้ตรงกับโฟลเดอร์ของคุณ
 import 'package:jimjaew_app/home_screen/product_screen.dart';
+import 'package:jimjaew_app/products/product_image.dart'; // 🌟 เรียกใช้ Widget แสดงรูปที่เราสร้างไว้
 
-// 🌟 1. อัปเกรดเป็น StatefulWidget เพื่อให้หน้าจอกดปุ่มแล้วเปลี่ยนข้อมูลได้
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
 
@@ -15,8 +15,6 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> {
   final ProductManager _productManager = ProductManager();
-
-  // 🌟 2. ตัวแปรสำหรับจำว่าตอนนี้เรา "กดเลือกหมวดหมู่ไหนอยู่" (ค่าเริ่มต้นคือ Shirt)
   String _selectedCategoryFilter = 'Shirt';
 
   @override
@@ -40,8 +38,8 @@ class _ShopScreenState extends State<ShopScreen> {
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildProductGrid(), // หน้า "สินค้า" (โชว์ทั้งหมด)
-                  _buildCategoryPage(), // หน้า "หมวดหมู่" (โชว์แยก)
+                  _buildProductGrid(),
+                  _buildCategoryPage(),
                 ],
               ),
             ),
@@ -52,27 +50,18 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  // --- ส่วนโชว์สินค้าทั้งหมด (หน้าแรก) ---
   Widget _buildProductGrid() {
     return StreamBuilder<List<ShopItemModel>>(
       stream: _productManager.getProductsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Colors.blue,
-            ),
-          );
+          return const Center(child: CircularProgressIndicator(color: Colors.blue));
         }
-
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
-            child: Text('No products in your store'),
-          );
+          return const Center(child: Text('No products in your store'));
         }
 
         final products = snapshot.data!;
-
         return GridView.builder(
           padding: const EdgeInsets.all(8),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -90,38 +79,22 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  // --- ส่วนวาดการ์ดสินค้า ---
+  // --- ส่วนวาดการ์ดสินค้า (แก้ไขจุดแสดงรูปภาพ) ---
   Widget _buildProductCard(ShopItemModel product) {
     return Card(
       elevation: 1,
       color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: product.imagePath != null && product.imagePath!.isNotEmpty
-                ? Image.network(
-              product.imagePath!,
-              fit: BoxFit.cover,
+            child: Container(
               width: double.infinity,
-              errorBuilder: (context, error, stackTrace) {
-                return const Center(
-                  child: Icon(
-                    Icons.image_not_supported,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            )
-                : const Center(
-              child: Icon(
-                Icons.image,
-                size: 50,
-                color: Colors.grey,
+              color: Colors.grey.shade100,
+              // 🌟 เปลี่ยนจาก Image.network เป็น ProductImage เพื่อให้รูปติดถาวร
+              child: ProductImage(
+                imagePath: product.imagePath,
               ),
             ),
           ),
@@ -132,63 +105,30 @@ class _ShopScreenState extends State<ShopScreen> {
               children: [
                 Text(
                   product.name,
-                  maxLines: 1, // ปรับให้เหลือ 1 บรรทัดเพื่อเพิ่มพื้นที่ให้แถวดาว
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
-
                 const SizedBox(height: 4),
-
-                // 🌟 แถวโชว์คะแนนดาวรีวิวแบบสวยงามสไตล์ Shopee
                 Row(
                   children: [
-                    const Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                      size: 14,
-                    ), // ดาวสีทอง
+                    const Icon(Icons.star, color: Colors.amber, size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      product.rating.toStringAsFixed(1), // โชว์คะแนน เช่น 4.8
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      product.rating.toStringAsFixed(1),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      "(${product.reviewCount})", // โชว์จำนวนคนรีวิว เช่น (120)
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
-                      ),
-                    ),
+                    Text("(${product.reviewCount})", style: const TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
-
                 const SizedBox(height: 6),
-
                 Text(
                   "฿${product.price}",
-                  style: const TextStyle(
-                    color: Color(0xFFEE4D2D),
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(color: Color(0xFFEE4D2D), fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-
                 const SizedBox(height: 4),
-
-                Text(
-                  "Stock: ${product.stock}",
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey,
-                  ),
-                ),
+                Text("Stock: ${product.stock}", style: const TextStyle(fontSize: 10, color: Colors.grey)),
               ],
             ),
           ),
@@ -197,7 +137,6 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  // --- ส่วนปุ่มจัดการสินค้าด้านล่าง ---
   Widget _buildBottomManageButton(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -205,49 +144,26 @@ class _ShopScreenState extends State<ShopScreen> {
       child: SafeArea(
         child: ElevatedButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ProductScreen(),
-              ),
-            );
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProductScreen()));
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue,
             minimumSize: const Size(double.infinity, 45),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           ),
-          child: const Text(
-            "Manage Products",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child: const Text("Manage Products", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ),
     );
   }
 
-  // --- ส่วน Header ด้านบน ---
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(
-        top: 50,
-        left: 16,
-        right: 16,
-        bottom: 20,
-      ),
+      padding: const EdgeInsets.only(top: 50, left: 16, right: 16, bottom: 20),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFF4D93CF),
-            Color(0xFF90CCEE),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          colors: [Color(0xFF4D93CF), Color(0xFF90CCEE)],
+          begin: Alignment.topCenter, end: Alignment.bottomCenter,
         ),
       ),
       child: Column(
@@ -255,13 +171,8 @@ class _ShopScreenState extends State<ShopScreen> {
           Row(
             children: [
               IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
@@ -269,23 +180,11 @@ class _ShopScreenState extends State<ShopScreen> {
           const Row(
             children: [
               CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.storefront,
-                  color: Color(0xFF4D93CF),
-                  size: 32,
-                ),
+                radius: 30, backgroundColor: Colors.white,
+                child: Icon(Icons.storefront, color: Color(0xFF4D93CF), size: 32),
               ),
               SizedBox(width: 15),
-              Text(
-                "My Store",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text("My Store", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
@@ -293,7 +192,6 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  // --- 🌟 ส่วนวาดหน้า "หมวดหมู่" ที่แก้ไขใหม่ ---
   Widget _buildCategoryPage() {
     final categories = [
       {"icon": Icons.checkroom, "label": "Shirt"},
@@ -308,15 +206,8 @@ class _ShopScreenState extends State<ShopScreen> {
       children: [
         const Padding(
           padding: EdgeInsets.all(16.0),
-          child: Text(
-            "Select Category",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child: Text("Select Category", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
-
         SizedBox(
           height: 100,
           child: ListView.builder(
@@ -324,28 +215,18 @@ class _ShopScreenState extends State<ShopScreen> {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final categoryLabel = categories[index]["label"] as String;
-
-              // เช็คว่าปุ่มไหนกำลังถูกกดอยู่
               bool isSelected = _selectedCategoryFilter == categoryLabel;
-
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: InkWell(
-                  onTap: () {
-                    // 🌟 3. พอกดปุ่มปุ๊บ ให้เปลี่ยนค่าตัวแปร และสั่งให้หน้าจออัปเดต (กระพริบ 1 ที)
-                    setState(() {
-                      _selectedCategoryFilter = categoryLabel;
-                    });
-                  },
+                  onTap: () => setState(() => _selectedCategoryFilter = categoryLabel),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        width: 60,
-                        height: 60,
+                        width: 60, height: 60,
                         decoration: BoxDecoration(
-                          color:
-                          isSelected ? Colors.blue : Colors.blue.shade50,
+                          color: isSelected ? Colors.blue : Colors.blue.shade50,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -354,16 +235,10 @@ class _ShopScreenState extends State<ShopScreen> {
                           size: 30,
                         ),
                       ),
-
                       const SizedBox(height: 8),
-
                       Text(
                         categoryLabel,
-                        style: TextStyle(
-                          fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: Colors.black87,
-                        ),
+                        style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: Colors.black87),
                       ),
                     ],
                   ),
@@ -372,46 +247,17 @@ class _ShopScreenState extends State<ShopScreen> {
             },
           ),
         ),
-
-        // 🌟 4. ดึงข้อมูลจาก Firebase ตามหมวดหมู่ที่ถูกเลือก (มาแทนที่ข้อความหลอกๆ)
         Expanded(
           child: StreamBuilder<List<ShopItemModel>>(
-            // สั่งให้ไปดึงข้อมูลเฉพาะหมวดหมู่ที่คลิกอยู่เท่านั้น
-            stream: _productManager.getProductsByCategoryStream(
-              _selectedCategoryFilter,
-            ),
+            stream: _productManager.getProductsByCategoryStream(_selectedCategoryFilter),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.blue,
-                  ),
-                );
+                return const Center(child: CircularProgressIndicator(color: Colors.blue));
               }
-
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text(
-                    'Error: ${snapshot.error}',
-                  ),
-                );
-              }
-
-              // ถ้าหมวดหมู่นั้นยังไม่มีสินค้า ให้โชว์ข้อความนี้
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(
-                  child: Text(
-                    'No products in $_selectedCategoryFilter',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
-                );
+                return Center(child: Text('No products in $_selectedCategoryFilter', style: const TextStyle(color: Colors.grey)));
               }
-
-              // ถ้ามีสินค้า ให้วาดกล่องสินค้าออกมาเลย!
               final products = snapshot.data!;
-
               return GridView.builder(
                 padding: const EdgeInsets.all(8),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -421,9 +267,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   mainAxisSpacing: 8,
                 ),
                 itemCount: products.length,
-                itemBuilder: (context, index) {
-                  return _buildProductCard(products[index]);
-                },
+                itemBuilder: (context, index) => _buildProductCard(products[index]),
               );
             },
           ),

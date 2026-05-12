@@ -60,6 +60,7 @@ class ShopItemModel {
       'category': category,
       'rating': rating,
       'reviewCount': reviewCount,
+      'isFavorite': isFavorite,
     };
   }
 }

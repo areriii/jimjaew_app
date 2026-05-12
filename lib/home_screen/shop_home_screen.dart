@@ -1,153 +1,36 @@
-//หน้า โฮม
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:jimjaew_app/model/product_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:jimjaew_app/home_screen/cart_screen.dart';
 import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/home_screen/profile_screen.dart';
-import 'package:jimjaew_app/home_screen/all_products_screen.dart';
-import 'category_screen.dart';
-import 'package:jimjaew_app/products/shop_item_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jimjaew_app/products/shop_item_model.dart'; // เช็ค import ให้ตรงนะครับ
+import 'package:jimjaew_app/home_screen/category_screen.dart';
+import 'package:jimjaew_app/login/login_screen.dart';
+import 'package:jimjaew_app/register/register_screen.dart';
 import 'package:jimjaew_app/products/product_manager.dart';
-import 'package:jimjaew_app/home_screen/order_screen.dart';
+import 'package:jimjaew_app/products/shop_item_model.dart';
+import 'package:jimjaew_app/user/user_manager.dart';
+import 'package:jimjaew_app/products/product_image.dart';
+
 class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
-
   @override
   State<ShopHomeScreen> createState() => _ShopHomeScreenState();
 }
 
 class _ShopHomeScreenState extends State<ShopHomeScreen> {
   int _selectedIndex = 0;
-  bool _isSearching = false;
   final ProductManager _productManager = ProductManager();
   final TextEditingController _searchController = TextEditingController();
-
-  // null = ยังไม่ได้เลือก category
   String? selectedCategory;
 
   final List<Map<String, dynamic>> categories = [
-    {
-      "icon": "assets/icons/shirt-solid-full.svg",
-      "label": "Shirt",
-    },
-    {
-      "icon": "assets/icons/pants-svgrepo-com.svg",
-      "label": "Pants",
-    },
-    {
-      "icon": "assets/icons/glasses-solid-full.svg",
-      "label": "Glasses",
-    },
-    {
-      "icon": "assets/icons/socks-solid-full.svg",
-      "label": "Shoes",
-    },
-    {
-      "icon": "assets/icons/watch-solid-full.svg",
-      "label": "Watch",
-    },
+    {"icon": "assets/icons/shirt-solid-full.svg", "label": "Shirt"},
+    {"icon": "assets/icons/pants-svgrepo-com.svg", "label": "Pants"},
+    {"icon": "assets/icons/glasses-solid-full.svg", "label": "Glasses"},
+    {"icon": "assets/icons/socks-solid-full.svg", "label": "Shoes"},
+    {"icon": "assets/icons/watch-solid-full.svg", "label": "Watch"},
   ];
-
-  final List<Map<String, dynamic>> products = [
-    {
-      "name": "Gustavo Rosser",
-      "price": "Rs. 1000",
-      "rating": 3,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800",
-      "description": "เสื้อเชิ้ตผู้ชาย ใส่สบาย เหมาะกับหลายโอกาส",
-      "category": "Shirt",
-    },
-    {
-      "name": "Hanna Dokidis",
-      "price": "Rs. 1000",
-      "rating": 3,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=800",
-      "description": "เสื้อเชิ้ตแขนยาว เรียบ ๆ แมตช์ง่าย",
-      "category": "Shirt",
-    },
-    {
-      "name": "Original Tee",
-      "price": "Rs. 1000",
-      "rating": 3,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
-      "description": "เสื้อยืดลำลอง ใส่ได้ทุกวัน",
-      "category": "Shirt",
-    },
-    {
-      "name": "Trouser",
-      "price": "Rs. 3000",
-      "rating": 4,
-      "favorite": true,
-      "image":
-      "https://images.unsplash.com/photo-1506629905607-bb5b4b1fbad5?w=800",
-      "description": "กางเกงทรงสวย ใส่สบาย",
-      "category": "Pants",
-    },
-    {
-      "name": "Blue Jeans",
-      "price": "Rs. 2200",
-      "rating": 4,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800",
-      "description": "กางเกงยีนส์ทรงสวย",
-      "category": "Pants",
-    },
-    {
-      "name": "Classic Glasses",
-      "price": "Rs. 1800",
-      "rating": 4,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800",
-      "description": "แว่นตาทรงคลาสสิก",
-      "category": "Glasses",
-    },
-    {
-      "name": "Sport Shoes",
-      "price": "Rs. 3500",
-      "rating": 5,
-      "favorite": true,
-      "image":
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800",
-      "description": "รองเท้าสำหรับใส่เดินสบาย",
-      "category": "Shoes",
-    },
-    {
-      "name": "Silver Watch",
-      "price": "Rs. 4200",
-      "rating": 4,
-      "favorite": false,
-      "image":
-      "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800",
-      "description": "นาฬิกาดีไซน์เรียบหรู",
-      "category": "Watch",
-    },
-  ];
-
-  List<Map<String, dynamic>> get filteredProducts {
-    final query = _searchController.text.trim().toLowerCase();
-
-    return products.where((product) {
-      final name = (product["name"] ?? "").toString().toLowerCase();
-      final category = (product["category"] ?? "").toString();
-
-      final matchCategory =
-      selectedCategory == null ? true : category == selectedCategory;
-
-      final matchSearch = query.isEmpty || name.contains(query);
-
-      return matchCategory && matchSearch;
-    }).toList();
-  }
 
   @override
   void dispose() {
@@ -155,56 +38,66 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     super.dispose();
   }
 
-  Widget _buildCategoryIcon(String iconPath, bool isSelected) {
-    return SvgPicture.asset(
-      iconPath,
-      width: 28,
-      height: 28,
-      colorFilter: ColorFilter.mode(
-        isSelected ? Colors.white : Colors.black87,
-        BlendMode.srcIn,
-      ),
-    );
+  void _openAccountPage() async {
+    final userManager = UserManager();
+    if (userManager.isLoggedIn) {
+      _goToProfileScreen();
+    } else {
+      _showLoginOrRegisterSheet();
+    }
   }
 
-  Widget _buildCategoryItem(Map<String, dynamic> category) {
-    final bool isSelected = selectedCategory == category["label"];
-    final String iconPath = category["icon"] as String;
+  void _goToProfileScreen() {
+    final userManager = UserManager();
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen(
+      username: userManager.currentFirstName,
+      email: userManager.currentEmail,
+    )));
+  }
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (selectedCategory == category["label"]) {
-            selectedCategory = null;
-          } else {
-            selectedCategory = category["label"];
-          }
-        });
-      },
-      child: Column(
-        children: [
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF5B9DDB)
-                  : const Color(0xFFD8ECFF),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: _buildCategoryIcon(iconPath, isSelected),
-            ),
+  void _showLoginOrRegisterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(20))),
+              const SizedBox(height: 20),
+              const Text("Account Required", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity, height: 48,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    final result = await Navigator.push(context, MaterialPageRoute(builder: (c) => const LoginScreen()));
+                    if (result == true) { setState(() {}); _goToProfileScreen(); }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2196F3), foregroundColor: Colors.white),
+                  child: const Text("Login", style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity, height: 48,
+                child: OutlinedButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    final result = await Navigator.push(context, MaterialPageRoute(builder: (c) => const RegisterScreen()));
+                    if (result == true) { setState(() {}); _goToProfileScreen(); }
+                  },
+                  style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF2196F3)),
+                  child: const Text("Register", style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            category["label"],
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -212,412 +105,223 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: _buildBody(),
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: _selectedIndex == 3 ? const CartScreen() : _buildBody(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF7FB3E8),
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        selectedItemColor: const Color(0xFF2196F3),
+        unselectedItemColor: Colors.grey.shade400,
+        onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_filled),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view),
-            label: "Category",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: "Favorite",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: "Cart",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: "Category"),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: "Favorite"),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: "Cart"),
         ],
       ),
     );
   }
 
   Widget _buildBody() {
-    if (_selectedIndex == 0) {
-      return _buildHomePage();
-    } else if (_selectedIndex == 1) {
-      // 🌟 เปลี่ยนจากการ Push หน้าใหม่ เป็นการดึงหน้า CategoryScreen มาแสดงในแท็บเลย
-      return CategoryScreen(
-        categories: categories,
-        products: products,
+    if (_selectedIndex == 0) return _buildHomePage();
+    if (_selectedIndex == 1) return CategoryScreen(
+        categories: categories, products: const [],
         selectedCategory: selectedCategory,
-        onCategorySelect: (value) {
-          setState(() {
-            selectedCategory = value.isEmpty ? null : value;
-          });
-        },
-      );
-    } else if (_selectedIndex == 2) {
-      return _buildFavoritePage();
-    } else {
-      return _buildCartPage();
-    }
+        onCategorySelect: (v) => setState(() { selectedCategory = v.isEmpty ? null : v; _selectedIndex = 0; })
+    );
+    if (_selectedIndex == 2) return _buildFavoritePage();
+    return const CartScreen();
   }
 
-
   Widget _buildHomePage() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 18),
+    return Column(
+      children: [
+        // 🌟 1. ส่วนหัวพร้อมช่องค้นหา (Search Bar)
+        _buildGradientHeader(),
 
-            Row(
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+            children: [
+              _buildCategorySection(),
+              const SizedBox(height: 20),
+              // แสดงหัวข้อตามการเลือกหมวดหมู่
+              Text(
+                selectedCategory != null ? "Category: $selectedCategory" : "Recent Products",
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D2D2D)),
+              ),
+              const SizedBox(height: 15),
+              // 🌟 2. แสดงกริตสินค้าพร้อมระบบกรอง (Filtering)
+              _buildProductGrid(null),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductGrid(bool? onlyFavorite) {
+    Query queryRef = FirebaseFirestore.instance.collection('products');
+    if (onlyFavorite == true) queryRef = queryRef.where('isFavorite', isEqualTo: true);
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: queryRef.snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const Center(child: Text("No products found"));
+
+        // 🌟 3. ตรรกะการกรองข้อมูลตามหมวดหมู่และการค้นหา
+        final filteredProducts = snapshot.data!.docs.map((doc) => ShopItemModel.fromFirestore(doc)).where((p) {
+          final matchSearch = _searchController.text.isEmpty || p.name.toLowerCase().contains(_searchController.text.toLowerCase());
+          final matchCat = onlyFavorite == true ? true : (selectedCategory == null || p.category == selectedCategory);
+          return matchSearch && matchCat;
+        }).toList();
+
+        if (filteredProducts.isEmpty) return const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No products match your search")));
+
+        return GridView.builder(
+          shrinkWrap: true, // ป้องกันเลย์เอาต์หาย
+          physics: const NeverScrollableScrollPhysics(), // เลื่อนไปกับหน้าหลัก
+          itemCount: filteredProducts.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 15, mainAxisSpacing: 15, childAspectRatio: 0.65),
+          itemBuilder: (context, index) {
+            final product = filteredProducts[index];
+            return GestureDetector(
+              // 🌟 4. กดที่รูปแล้วไปหน้ารายละเอียดสินค้า
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailScreen(product: product))),
+              child: ProductCard(
+                product: product,
+                onFavoriteToggle: () => _productManager.toggleFavorite(product.id, product.isFavorite),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildGradientHeader() {
+    return Container(
+      padding: const EdgeInsets.only(top: 60, left: 20, right: 20, bottom: 30),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: [Color(0xFF2196F3), Color(0xFF03A9F4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Welcome back,", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  Text("Jimjaew Shop", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              GestureDetector(
+                onTap: _openAccountPage,
+                child: const CircleAvatar(backgroundColor: Colors.white, radius: 22, child: Icon(Icons.person, color: Color(0xFF2196F3))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 25),
+          // 🔍 ช่องค้นหาที่หายไป (เพิ่มกลับมาให้แล้ว)
+          Container(
+            height: 52, padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: const Offset(0, 5))]),
+            child: Row(
               children: [
-                if (_isSearching)
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      setState(() {
-                        _searchController.clear();
-                        _isSearching = false;
-                      });
-                    },
-                  ),
+                const Icon(Icons.search, color: Color(0xFF2196F3)),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Container(
-                    height: 52,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFEFEF),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.search, color: Colors.grey),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _isSearching
-                              ? TextField(
-                            controller: _searchController,
-                            autofocus: true,
-                            onChanged: (_) {
-                              setState(() {});
-                            },
-                            decoration: const InputDecoration(
-                              hintText: "Search for products",
-                              border: InputBorder.none,
-                            ),
-                          )
-                              : GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _isSearching = true;
-                              });
-                            },
-                            child: const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                "Search for products",
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (_isSearching)
-                          IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _isSearching = false;
-                              });
-                            },
-                            icon: const Icon(Icons.close),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                        const ProfileScreen(username: '', email: ''),
-                      ),
-                    );
-                  },
-                  child: const CircleAvatar(
-                    radius: 24,
-                    backgroundImage: NetworkImage(
-                      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300",
-                    ),
-                  ),
+                    child: TextField(
+                        controller: _searchController,
+                        onChanged: (_) => setState(() {}), // รีเฟรชกริตเมื่อพิมพ์
+                        decoration: const InputDecoration(hintText: "Search for products...", border: InputBorder.none)
+                    )
                 ),
               ],
             ),
-
-            const SizedBox(height: 28),
-
-            // 🔥 แสดง header เฉพาะ Search และ Category เท่านั้น
-            if (_isSearching || _searchController.text.isNotEmpty || selectedCategory != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    selectedCategory != null
-                        ? selectedCategory!
-                        : "Search Results",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  // 🔥 แสดง See all เฉพาะ Search เท่านั้น
-                  if (selectedCategory == null)
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AllProductsScreen(
-                              products: filteredProducts,
-                            ),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        "See all",
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                ],
-              ),
-
-            const SizedBox(height: 16),
-
-            if (!_isSearching && _searchController.text.isEmpty) ...[
-              const Text(
-                "Categories",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-
-              SizedBox(
-                height: 90,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 10),
-                  itemBuilder: (context, index) {
-                    return _buildCategoryItem(categories[index]);
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 20),
-            ],
-
-            // 🌟 ลบ Expanded อันเดิมทิ้ง แล้วใช้อันนี้แทนครับ (ดึงจาก Firebase)
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('products').snapshots(),
-                builder: (context, snapshot) {
-                  // 1. ระหว่างรอโหลดข้อมูลจากเน็ต
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  // 2. ถ้าไม่มีสินค้าในฐานข้อมูลเลย
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Text("ยังไม่มีสินค้าในร้าน", style: TextStyle(color: Colors.grey)),
-                    );
-                  }
-
-                  // 3. แปลงข้อมูลทั้งหมดจาก Firebase ให้กลายเป็น ShopItemModel ของจริง
-                  final allRealProducts = snapshot.data!.docs
-                      .map((doc) => ShopItemModel.fromFirestore(doc))
-                      .toList();
-
-                  // 🌟 4. ระบบกรองข้อมูล (ทำงานร่วมกับช่องค้นหา และปุ่มหมวดหมู่)
-                  final String query = _searchController.text.trim().toLowerCase();
-                  final filteredRealProducts = allRealProducts.where((product) {
-                    // เช็คหมวดหมู่ (ถ้าไม่ได้เลือกคือผ่านหมด)
-                    final matchCategory = selectedCategory == null || product.category == selectedCategory;
-                    // เช็คคำค้นหา
-                    final matchSearch = query.isEmpty || product.name.toLowerCase().contains(query);
-
-                    return matchCategory && matchSearch;
-                  }).toList();
-
-                  // ถ้าค้นหาแล้วไม่เจออะไรเลย
-                  if (filteredRealProducts.isEmpty) {
-                    return const Center(
-                      child: Text("ไม่พบสินค้าที่คุณค้นหา", style: TextStyle(color: Colors.grey)),
-                    );
-                  }
-
-                  // 5. วาดตารางสินค้าด้วยข้อมูลจริงที่ผ่านการกรองแล้ว
-                  return GridView.builder(
-                    itemCount: filteredRealProducts.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 18,
-                      mainAxisSpacing: 18,
-                      childAspectRatio: 0.58,
-                    ),
-                    itemBuilder: (context, index) {
-                      final realProduct = filteredRealProducts[index];
-
-                      return GestureDetector(
-                        onTap: () {
-                          // 🌟 ตรงนี้สำคัญ: ส่ง "ของจริง" ไปที่หน้ารายละเอียด
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(product: realProduct),
-                            ),
-                          );
-                        },
-                        child: ProductCard(
-                          name: realProduct.name,
-                          price: "฿${realProduct.price}", // เปลี่ยนเป็นแสดงค่าเงินบาท
-                          rating: realProduct.rating.toInt(), // ดึงดาวของจริง
-                          isFavorite: false, // ระบบ Favorite ของจริงค่อยทำทีหลัง
-                          imageUrl: realProduct.imagePath ?? "", // ดึงรูปภาพจริง
-                          onFavoriteToggle: () {
-                            _productManager.toggleFavorite(realProduct.id, realProduct.isFavorite);
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildCartPage() {
-    return OrderScreen();
+  Widget _buildCategorySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Categories", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 15),
+        SizedBox(
+          height: 95,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 15),
+            itemBuilder: (context, index) => _buildCategoryItem(categories[index]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryItem(Map<String, dynamic> category) {
+    final bool isSelected = selectedCategory == category["label"];
+    return GestureDetector(
+      onTap: () => setState(() => selectedCategory = isSelected ? null : category["label"]),
+      child: Column(
+        children: [
+          Container(
+              width: 65, height: 65,
+              decoration: BoxDecoration(color: isSelected ? const Color(0xFF2196F3) : const Color(0xFFE3F2FD), borderRadius: BorderRadius.circular(20)),
+              child: Center(child: SvgPicture.asset(category["icon"], width: 28, colorFilter: ColorFilter.mode(isSelected ? Colors.white : const Color(0xFF2196F3), BlendMode.srcIn)))
+          ),
+          const SizedBox(height: 8),
+          Text(category["label"], style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? const Color(0xFF2196F3) : Colors.black54)),
+        ],
+      ),
+    );
   }
 
   Widget _buildFavoritePage() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 🌟 สร้างแถว (Row) เพื่อใส่ปุ่มย้อนกลับคู่กับหัวข้อ
-            const Text(
-              "Favorite (รายการโปรด)",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+    return Column(
+      children: [
+        _buildGradientHeader(),
+        Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [_buildProductGrid(true)])),
+      ],
+    );
+  }
+}
+
+class ProductCard extends StatelessWidget {
+  final ShopItemModel product;
+  final VoidCallback onFavoriteToggle;
+  const ProductCard({super.key, required this.product, required this.onFavoriteToggle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+      child: Column(
+        children: [
+          Expanded(child: ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(20)), child: ProductImage(imagePath: product.imagePath))),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(product.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text("฿${product.price}", style: const TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 15)),
+                Align(alignment: Alignment.centerRight, child: IconButton(icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.red), onPressed: onFavoriteToggle)),
+              ],
             ),
-            const SizedBox(height: 20),
-
-            // ... โค้ด Expanded(child: StreamBuilder...) ของเดิมอยู่ต่อจากตรงนี้
-
-            // 🌟 ใช้ StreamBuilder ดึงข้อมูลจริงจาก Firebase
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('products').snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Text("ไม่มีสินค้าในร้าน", style: TextStyle(color: Colors.grey)),
-                    );
-                  }
-
-                  // 🌟 ค้นหาเฉพาะสินค้าที่มีคำสั่ง isFavorite = true ใน Firebase
-                  final favoriteDocs = snapshot.data!.docs.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return data['isFavorite'] == true; // กรองเอาเฉพาะอันที่กดหัวใจ
-                  }).toList();
-
-                  if (favoriteDocs.isEmpty) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.favorite_border, size: 48, color: Colors.grey),
-                          SizedBox(height: 8),
-                          Text("คุณยังไม่มีสินค้าที่ถูกใจ", style: TextStyle(color: Colors.grey)),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // แปลงข้อมูลที่กรองแล้วให้เป็น ShopItemModel
-                  final favoriteProducts = favoriteDocs
-                      .map((doc) => ShopItemModel.fromFirestore(doc))
-                      .toList();
-
-                  // วาดการ์ดสินค้า
-                  return GridView.builder(
-                    itemCount: favoriteProducts.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 18,
-                      mainAxisSpacing: 18,
-                      childAspectRatio: 0.52, // 🌟 ใช้ 0.52 เพื่อกันข้อความล้นกรอบเหลืองดำ
-                    ),
-                    itemBuilder: (context, index) {
-                      final product = favoriteProducts[index];
-
-                      return GestureDetector(
-                        onTap: () {
-                          // กดแล้วไปหน้ารายละเอียด
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetailScreen(product: product),
-                            ),
-                          );
-                        },
-                        child: ProductCard(
-                          name: product.name,
-                          price: "฿${product.price}",
-                          rating: product.rating.toInt(),
-                          // 🌟 1. เปลี่ยนให้ดึงค่าหัวใจจริงๆ จาก Firebase มาโชว์
-                          isFavorite: product.isFavorite,
-                          imageUrl: product.imagePath ?? "",
-                          onFavoriteToggle: () {
-                            // 🌟 2. ลบ SnackBar ทิ้ง แล้วสั่งอัปเดตค่าลง Firebase ทันทีที่กด
-                            _productManager.toggleFavorite(product.id, product.isFavorite);
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

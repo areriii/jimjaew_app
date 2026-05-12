@@ -1,16 +1,15 @@
-// หน้ากดซื้อสินค้า
+// หน้ากดซื้อสินค้า (ProductDetailScreen)
 
 import 'dart:io';
 import 'package:flutter/material.dart';
-// 🔴 เช็คให้แน่ใจว่า import ถูกโฟลเดอร์นะครับ
+import 'package:jimjaew_app/home_screen/cart_screen.dart';
 import 'package:jimjaew_app/products/shop_item_model.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../products/order_manager.dart';
+import 'package:jimjaew_app/products/product_image.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  // ✅ เปลี่ยนมารับข้อมูลเป็นก้อน ShopItemModel
   final ShopItemModel product;
-
   const ProductDetailScreen({super.key, required this.product});
 
   @override
@@ -18,43 +17,51 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  // 🌟 กำหนดสีหลักไว้ที่นี่เพื่อให้แก้ง่าย
+  final Color primaryBlue = const Color(0xFF2196F3);
+
   @override
   Widget build(BuildContext context) {
-    // ดึงข้อมูลสินค้ามาเก็บไว้ในตัวแปร item
     final item = widget.product;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      // 1. 🎨 เปลี่ยนพื้นหลังให้ขาวนวลขึ้น
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Text(item.name),
-        backgroundColor: Colors.blue,
+        title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        // 2. 🎨 เปลี่ยนสี AppBar เป็นฟ้าสด
+        backgroundColor: primaryBlue,
         foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.shopping_cart))
+          IconButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
+              },
+              icon: const Icon(Icons.shopping_cart)
+          )
         ],
       ),
       body: ListView(
         children: [
-          // 1. ส่วนรูปภาพ
+          // ส่วนรูปภาพ
           Container(
-            height: 300,
+            height: 350,
             width: double.infinity,
-            color: Colors.grey[100],
-            child: item.imagePath != null
-                ? Image.file(File(item.imagePath!), fit: BoxFit.cover)
-                : const Icon(Icons.image, size: 100, color: Colors.grey),
+            color: Colors.white, // เปลี่ยนเป็นสีขาวเพื่อให้รูปดูสะอาด
+            child: ProductImage(imagePath: item.imagePath),
           ),
 
-          // 2. ส่วนรายละเอียด
-          // 2. ส่วนรายละเอียด
+          // ส่วนรายละเอียด
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item.name,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF2D2D2D)),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -62,51 +69,53 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   children: [
                     Text(
                       "฿${item.price.toStringAsFixed(2)}",
-                      style: const TextStyle(
-                        color: Colors.blue,
-                        fontSize: 24,
+                      style: TextStyle(
+                        // 3. 🎨 เปลี่ยนสีราคาเป็นฟ้าสด
+                        color: primaryBlue,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      item.stock > 0 ? "มีสินค้า : ${item.stock} ชิ้น" : "สินค้าหมด",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: item.stock > 10 ? Colors.green : (item.stock > 0 ? Colors.orange : Colors.red),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: item.stock > 0 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        item.stock > 0 ? "มีสินค้า : ${item.stock} ชิ้น" : "สินค้าหมด",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: item.stock > 10 ? Colors.green : (item.stock > 0 ? Colors.orange : Colors.red),
+                        ),
                       ),
                     ),
                   ],
                 ),
 
-                // 🌟 แถวโชว์สถิติดาวและรีวิวในหน้ารายละเอียด (เพิ่มใหม่ตรงนี้)
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Row(
                   children: [
-                    // วาดดาว 5 ดวงตามคะแนน (สุ่มวาดดาวเต็มดวง)
                     Row(
                       children: List.generate(5, (index) {
                         return Icon(
                           index < item.rating.floor() ? Icons.star : Icons.star_border,
                           color: Colors.amber,
-                          size: 20,
+                          size: 22,
                         );
                       }),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      item.rating.toStringAsFixed(1), // เช่น 4.5
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      item.rating.toStringAsFixed(1),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      height: 15,
-                      width: 1,
-                      color: Colors.grey.shade400, // เส้นคั่นตรงกลางแบบเท่ๆ
-                    ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
+                    const Text("|", style: TextStyle(color: Colors.grey)),
+                    const SizedBox(width: 12),
                     Text(
-                      "ขายแล้ว ${item.reviewCount * 3} ชิ้น", // สุ่มยอดขายอิงจากจำนวนคนรีวิว
+                      "ขายแล้ว ${item.reviewCount * 3} ชิ้น",
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
@@ -117,80 +126,65 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   "รายละเอียดสินค้า",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 const Text(
-                  "นี่คือรายละเอียดสินค้าจำลอง คุณสามารถเพิ่มคำอธิบายสินค้ายาวๆ ลงในฐานข้อมูล Firebase แล้วดึงมาแสดงตรงนี้ได้ในอนาคตครับ...",
-                  style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
+                  "สินค้านี้ผ่านการคัดสรรคุณภาพมาอย่างดี ดีไซน์ทันสมัยเข้ากับทุกไลฟ์สไตล์ "
+                      "วัสดุมีความทนทานและใช้งานได้ยาวนาน เหมาะสำหรับเป็นของขวัญหรือใช้เอง",
+                  style: TextStyle(fontSize: 16, color: Colors.black54, height: 1.6),
                 ),
+                const SizedBox(height: 100),
               ],
             ),
           ),
         ],
       ),
 
-      // 3. ปุ่มด้านล่าง
+      // 4. 🎨 ปุ่มด้านล่าง
       bottomNavigationBar: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.all(12.0),
-        child: SafeArea(
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () async {
-                    final orderManager = OrderManager();
-
-                    await orderManager.addMyPurchase(
-                      item.name,
-                      item.price,
-                    );
-
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Added to cart"),
-                          backgroundColor: Colors.blue,
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.add_shopping_cart, color: Colors.blue),
-                  label: const Text("เพิ่มลงรถเข็น", style: TextStyle(color: Colors.blue)),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.blue),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  // 🌟 เพิ่ม async ตรงนี้
-                  onPressed: () async {
-                    // 🌟 โค้ดสร้างคำสั่งซื้อเมื่อกดปุ่ม
-                    final orderManager = OrderManager();
-                    // โยนชื่อสินค้า และ ราคา ส่งไปที่ Firebase
-                    await orderManager.addMyPurchase(item.name, item.price); // ส่งข้อมูลเข้าตะกร้าฉันเอง
-
-                    // โชว์แจ้งเตือนเด้งด้านล่างว่าซื้อสำเร็จแล้ว
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('🎉 Purchase successful'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.payment, color: Colors.white),
-                  label: const Text("ซื้อสินค้า", style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))
+            ]
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          height: 55,
+          child: ElevatedButton.icon(
+            onPressed: item.stock > 0 ? () async {
+              // ... โค้ด Firebase เหมือนเดิม ...
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('กำลังเพิ่มลงตะกร้า...')));
+              final cartRef = FirebaseFirestore.instance.collection('cart');
+              final snapshot = await cartRef.where('productName', isEqualTo: widget.product.name).get();
+              if (snapshot.docs.isNotEmpty) {
+                final docId = snapshot.docs.first.id;
+                final currentQty = snapshot.docs.first.data()['quantity'] ?? 1;
+                await cartRef.doc(docId).update({'quantity': currentQty + 1});
+              } else {
+                await cartRef.add({
+                  'productName': widget.product.name,
+                  'price': widget.product.price,
+                  'imagePath': widget.product.imagePath ?? '',
+                  'quantity': 1,
+                });
+              }
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('เพิ่มลงตะกร้าสำเร็จ!'), backgroundColor: Colors.green));
+              }
+            } : null,
+            icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
+            label: Text(
+                item.stock > 0 ? "เพิ่มลงรถเข็น" : "สินค้าหมดชั่วคราว",
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)
+            ),
+            style: ElevatedButton.styleFrom(
+              // 🎨 เปลี่ยนเป็นสีฟ้าสดตรงนี้ครับ
+              backgroundColor: item.stock > 0 ? primaryBlue : Colors.grey,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              elevation: 0,
+            ),
           ),
         ),
       ),

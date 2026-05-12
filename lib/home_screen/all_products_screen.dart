@@ -1,15 +1,14 @@
 // หน้าสินค้าทั้งหมด
 // หน้านี้ใช้สำหรับแสดงสินค้าทั้งหมดในรูปแบบ GridView
 // เมื่อกดที่สินค้า จะไปยังหน้ารายละเอียดสินค้า
-// คอมเมนต์เป็นภาษาไทย ส่วนข้อความที่แสดงในแอปเป็นภาษาอังกฤษทั้งหมด
 
 import 'package:flutter/material.dart';
-import 'package:jimjaew_app/model/product_model.dart';
 import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/products/shop_item_model.dart';
+// 🌟 1. Import ตัวแสดงรูปที่เราสร้างไว้ใหม่ครับ
+import 'package:jimjaew_app/products/product_image.dart';
 
 class AllProductsScreen extends StatelessWidget {
-  // รับรายการสินค้ามาจากหน้าก่อนหน้า
   final List<Map<String, dynamic>> products;
 
   const AllProductsScreen({
@@ -21,75 +20,55 @@ class AllProductsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-
-      // AppBar ด้านบนของหน้าสินค้าทั้งหมด
       appBar: AppBar(
         title: const Text("All Products"),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-
-        // ปุ่มย้อนกลับไปหน้าก่อนหน้า
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-
-      // ส่วนแสดงรายการสินค้าทั้งหมด
       body: Padding(
         padding: const EdgeInsets.all(20),
-
-        // แสดงสินค้าเป็นตาราง 2 คอลัมน์
         child: GridView.builder(
           itemCount: products.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 18,
             mainAxisSpacing: 18,
-            childAspectRatio: 0.58,
+            childAspectRatio: 0.62, // 🌟 ปรับสัดส่วนให้พอดีกับรูปภาพและข้อความ
           ),
           itemBuilder: (context, index) {
-            // ดึงข้อมูลสินค้าแต่ละชิ้นจาก List
             final product = products[index];
 
             return GestureDetector(
               onTap: () {
-                // เมื่อกดสินค้า จะไปยังหน้ารายละเอียดสินค้า
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ProductDetailScreen(
-                      // แปลงข้อมูลสินค้าแบบ Map ให้เป็น ShopItemModel ก่อนส่งไปหน้า Detail
                       product: ShopItemModel(
                         id: 'mock_id',
                         name: product["name"] ?? "No Name",
-                        price: double.tryParse(
-                          product["price"].toString(),
-                        ) ??
-                            0.0,
+                        price: double.tryParse(product["price"].toString()) ?? 0.0,
                         stock: 10,
-                        imagePath: product["image"],
+                        imagePath: product["image"], // ส่งค่า Path ไปหน้ารายละเอียด
                         category: 'Shirt',
                       ),
                     ),
                   ),
                 );
               },
-
-              // การ์ดแสดงข้อมูลสินค้า
               child: ProductCard(
                 name: product["name"] ?? "",
                 price: product["price"] ?? "",
                 rating: product["rating"] ?? 0,
                 isFavorite: product["favorite"] ?? false,
-                imageUrl: product["image"] ?? "",
-
-                // ฟังก์ชันกดหัวใจสินค้า
-                // หมายเหตุ: หน้านี้เป็น StatelessWidget จึงเปลี่ยนค่าได้แต่หน้าจอจะไม่ refresh ทันที
+                // 🌟 2. เปลี่ยนชื่อจาก imageUrl เป็น imagePath
+                imagePath: product["image"] ?? "",
                 onFavoriteToggle: () {
                   product["favorite"] = !(product["favorite"] ?? false);
                 },
@@ -97,6 +76,102 @@ class AllProductsScreen extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+// 🌟 3. ProductCard ตัวใหม่ที่ใช้ ProductImage ในการแสดงผล
+class ProductCard extends StatelessWidget {
+  final String name;
+  final String price;
+  final int rating;
+  final bool isFavorite;
+  final String? imagePath;
+  final VoidCallback onFavoriteToggle;
+
+  const ProductCard({
+    super.key,
+    required this.name,
+    required this.price,
+    required this.rating,
+    required this.isFavorite,
+    required this.imagePath,
+    required this.onFavoriteToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    // 🌟 เรียกใช้ตัวช่วยแสดงรูปภาพ
+                    child: ProductImage(imagePath: imagePath),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: onFavoriteToggle,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.white.withOpacity(0.8),
+                      radius: 16,
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: Colors.red,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  price,
+                  style: const TextStyle(color: Color(0xFF5B9DDB), fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: List.generate(5, (i) => Icon(
+                    Icons.star,
+                    size: 12,
+                    color: i < rating ? Colors.orange : Colors.grey.shade300,
+                  )),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

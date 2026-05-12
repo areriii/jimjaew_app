@@ -28,20 +28,48 @@ class MyApp extends StatelessWidget {
   // Widget หลักของแอป
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
+    return // main.dart
+      MaterialApp(
+        title: 'Jimjaew App',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          // 1. สีพื้นหลังของทุกหน้า
+          scaffoldBackgroundColor: const Color(0xFFF9F9FB),
 
-      // ตั้งค่า Theme หลักของแอป
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          // 2. สีหลักของปุ่มและไอคอนที่ถูกเลือก
+          primaryColor: const Color(0xFF5B9DDB),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF5B9DDB),
+            primary: const Color(0xFF5B9DDB),
+            secondary: const Color(0xFFD8ECFF),
+          ),
+
+          // 3. ปรับแต่ง AppBar ให้ดูคลีน (ไม่มีเงา)
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFFF9F9FB),
+            foregroundColor: Color(0xFF2D2D2D),
+            elevation: 0,
+            centerTitle: false,
+            titleTextStyle: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D2D2D),
+            ),
+          ),
+
+          // 4. ปรับแต่งดีไซน์ของปุ่ม ElevatedButton
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF5B9DDB),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              textStyle: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
         ),
-        useMaterial3: true,
-      ),
-
-      // หน้าแรกของแอป
-      home: const ShopHomeScreen(),
-    );
+        home: const ShopHomeScreen(),
+      );
   }
 }
 

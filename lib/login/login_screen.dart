@@ -1,14 +1,9 @@
-// หน้าล็อกอิน
-
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/user/user_manager.dart';
 import 'package:jimjaew_app/components/app_logo.dart';
 import 'package:jimjaew_app/register/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  // ทำไมใช้ StatefulWidget:
-  // เพราะหน้าจอนี้มีการเปลี่ยนแปลง เช่น ตอนผู้ใช้กดปุ่ม Login
-  // หน้าจอต้องเปลี่ยนเป็น Loading ได้ ถ้าใช้ StatelessWidget จะทำแบบนี้ไม่ได้
   const LoginScreen({super.key});
 
   @override
@@ -16,40 +11,26 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>(); // key เอาไว้เช็ค validation ของฟอร์ม
-
-  // controller เอาไว้ดึงค่าที่ user พิมพ์
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  // ตัวเรียก API login
   final _userManager = UserManager();
-
   Future<void>? _loginResult;
 
+  // ฟังก์ชันล็อกอิน
   Future<void> _login(String email, String password) async {
-    // ยิง API
     final result = await _userManager.login(email, password);
-
     if (!mounted) return;
 
-    // ถ้าล็อกอินสำเร็จ
     if (result != null && result.isSuccess) {
-      // สำคัญมาก:
-      // ไม่ใช้ pushReplacement ไป MainScreen แล้ว
-      // เพราะ ShopHomeScreen กำลังรอค่า true จากหน้านี้อยู่
-      // ถ้า pushReplacement จะทำให้หน้า Home ไม่รู้ว่า Login สำเร็จ
+      // ส่งค่า true กลับไปบอกหน้า Home ว่าล็อกอินสำเร็จแล้ว
       Navigator.pop(context, true);
-      return;
     } else {
-      // ถ้าล้มเหลว โชว์ dialog แจ้ง error
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text("Authentication Failed"),
-          content: Text(
-            result?.message ?? "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่",
-          ),
+          content: Text(result?.message ?? "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -61,7 +42,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // ปิด controller กัน memory leak
   @override
   void dispose() {
     _emailController.dispose();
@@ -69,47 +49,19 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // ฟังก์ชันตกแต่งช่อง input
-  InputDecoration customInputDecoration({
-    required String hintText,
-    required IconData icon,
-  }) {
+  // ดีไซน์ช่องกรอกข้อมูล
+  InputDecoration customInputDecoration({required String hintText, required IconData icon}) {
     return InputDecoration(
-      // ไอคอนหน้าช่อง
       prefixIcon: Icon(icon, color: Colors.grey),
-
-      // hint username / password
       hintText: hintText,
-
-      // style hint
-      hintStyle: const TextStyle(
-        color: Colors.grey,
-        fontWeight: FontWeight.w600,
-      ),
-
-      // พื้นหลังช่อง
+      hintStyle: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
       filled: true,
-      fillColor: const Color(0xFFE9E9EE),
-
-      // padding ในช่อง
+      fillColor: const Color(0xFFF5F5F5),
       contentPadding: const EdgeInsets.symmetric(vertical: 18),
-
-      // ขอบโค้ง ไม่มีเส้น
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-
-      // ตอน focus
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.blue, width: 1.2),
-      ),
-
-      // ตอน error
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.red),
+        borderSide: const BorderSide(color: Color(0xFF2196F3), width: 1.5),
       ),
     );
   }
@@ -117,160 +69,103 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
-      body: FutureBuilder(
-        // ว่าตอนนี้สถานะคือ waiting หรือเสร็จแล้ว
-        // ทำให้เราโชว์วงกลมโหลดรอได้
-        future: _loginResult,
-        builder: (context, snapshot) {
-          // ถ้ากำลัง login แสดง loading
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text("Logging In"),
-                ],
-              ),
-            );
-          }
+      backgroundColor: Colors.white,
+      body: Stack( // 🌟 ใช้ Stack เพื่อวางปุ่มย้อนกลับทับบนพื้นหลัง
+        children: [
+          FutureBuilder(
+            future: _loginResult,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator(color: Color(0xFF2196F3)));
+              }
 
-          // ถ้ามี error
-          if (snapshot.hasError) {
-            return Center(child: Text(snapshot.error.toString()));
-          }
+              return SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 60),
+                          // โลโก้แอป ReWear
+                          const Center(child: AppLogo(width: 280, height: 280)),
+                          const SizedBox(height: 20),
 
-          return SafeArea(
-            child: SingleChildScrollView(
-              // กัน Bottom Overflowed เวลาคีย์บอร์ดเด้งขึ้นมาบังจอ
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 22),
-                  child: Form(
-                    // เอา Form ไปคลุมช่องกรอก เพื่อให้ทำงานร่วมกับ _formKey ได้
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 70),
-
-                        // โลโก้
-                        Center(
-                          child: AppLogo(width: 350, height: 300),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // ช่อง username หรือ email
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: customInputDecoration(
-                            hintText: "username",
-                            icon: Icons.group,
+                          // ช่อง Email
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: customInputDecoration(hintText: "Email", icon: Icons.email_outlined),
+                            validator: (v) => (v == null || v.isEmpty) ? "กรุณากรอกอีเมล" : null,
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                          autocorrect: false,
-                          textCapitalization: TextCapitalization.none,
+                          const SizedBox(height: 20),
 
-                          // validation
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "กรุณากรอกอีเมล";
-                            }
-
-                            if (!value.contains("@")) {
-                              return "กรุณากรอกอีเมลให้ถูกต้อง";
-                            }
-
-                            return null;
-                          },
-                        ),
-
-                        const SizedBox(height: 35),
-
-                        // ช่อง password
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: true, // ซ่อนรหัสเป็นจุดกลม ๆ
-                          decoration: customInputDecoration(
-                            hintText: "password",
-                            icon: Icons.lock,
+                          // ช่อง Password
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: customInputDecoration(hintText: "Password", icon: Icons.lock_outline),
+                            validator: (v) => (v == null || v.isEmpty) ? "กรุณากรอกรหัสผ่าน" : null,
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "กรุณากรอกรหัสผ่าน";
-                            }
+                          const SizedBox(height: 35),
 
-                            return null;
-                          },
-                        ),
-
-                        const SizedBox(height: 35),
-
-                        // ปุ่ม Login
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // เช็คก่อนว่ากรอกครบมั้ย
-                              if (_formKey.currentState!.validate()) {
-                                // เรียก login
-                                setState(() {
-                                  // setState คือการบอกแอปว่า ข้อมูลเปลี่ยนแล้ว ให้วาดหน้าจอใหม่
-                                  _loginResult = _login(
-                                    _emailController.text.trim(),
-                                    _passwordController.text.trim(),
-                                  );
-                                });
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4D93CF),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                          // ปุ่ม Login สีฟ้าสด
+                          SizedBox(
+                            width: double.infinity,
+                            height: 55,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  setState(() {
+                                    _loginResult = _login(_emailController.text.trim(), _passwordController.text.trim());
+                                  });
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2196F3),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                elevation: 0,
                               ),
-                            ),
-                            child: const Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              child: const Text("Login", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 18),
-
-                        // ปุ่มไปหน้า Register
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Create an account",
-                            style: TextStyle(color: Colors.grey),
+                          const SizedBox(height: 20),
+                          TextButton(
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const RegisterScreen())),
+                            child: const Text("Don't have an account? Register", style: TextStyle(color: Colors.grey)),
                           ),
-                        ),
-
-                        const Spacer(),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
+              );
+            },
+          ),
+
+          // 🌟 1. ส่วนของปุ่มย้อนกลับ (Back Button)
+          Positioned(
+            top: 40,
+            left: 15,
+            child: SafeArea(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8)],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                  onPressed: () {
+                    // 🌟 2. คำสั่งย้อนกลับไปหน้าโฮม
+                    Navigator.pop(context);
+                  },
+                ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
