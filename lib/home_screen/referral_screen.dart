@@ -1,7 +1,3 @@
-// หน้าแนะนำเพื่อน
-// หน้านี้ใช้สำหรับแสดงรายชื่อผู้ใช้ที่แนะนำให้ติดตาม
-// คอมเมนต์ใช้ภาษาไทย ส่วนข้อความที่แสดงในแอปใช้ภาษาอังกฤษทั้งหมด
-
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/home_screen/follow_manager.dart';
 
@@ -13,165 +9,89 @@ class ReferralScreen extends StatefulWidget {
 }
 
 class _ReferralScreenState extends State<ReferralScreen> {
-  // ข้อมูลเพื่อนจำลองสำหรับแสดงผลบนหน้าแนะนำเพื่อน
-  // ในอนาคตสามารถเปลี่ยนส่วนนี้ให้ดึงข้อมูลจาก Firebase หรือ API ได้
+  // ข้อมูลเพื่อนจำลอง (เอาค่า isFollowing ออก เพราะเราจะไปเช็กจาก Manager แทน)
   final List<Map<String, dynamic>> _friends = [
-    {
-      "name": "Somchai Jaidee",
-      "username": "@somchai_dev",
-      "isFollowing": false,
-      "image": "https://i.pravatar.cc/150?img=11",
-    },
-    {
-      "name": "Mana Pakpian",
-      "username": "@mana_coder",
-      "isFollowing": true,
-      "image": "https://i.pravatar.cc/150?img=12",
-    },
-    {
-      "name": "Wipa Shop",
-      "username": "@wipa_shop",
-      "isFollowing": false,
-      "image": "https://i.pravatar.cc/150?img=5",
-    },
-    {
-      "name": "Piti Photo",
-      "username": "@piti_photo",
-      "isFollowing": false,
-      "image": "https://i.pravatar.cc/150?img=14",
-    },
-    {
-      "name": "Choojai Cute",
-      "username": "@choojai_cute",
-      "isFollowing": true,
-      "image": "https://i.pravatar.cc/150?img=9",
-    },
+    {"name": "Somchai Jaidee", "username": "@somchai_dev", "image": "https://i.pravatar.cc/150?img=11"},
+    {"name": "Mana Pakpian", "username": "@mana_coder", "image": "https://i.pravatar.cc/150?img=12"},
+    {"name": "Wipa Shop", "username": "@wipa_shop", "image": "https://i.pravatar.cc/150?img=5"},
+    {"name": "Piti Photo", "username": "@piti_photo", "image": "https://i.pravatar.cc/150?img=14"},
+    {"name": "Choojai Cute", "username": "@choojai_cute", "image": "https://i.pravatar.cc/150?img=9"},
   ];
-
-  // ฟังก์ชันสำหรับสลับสถานะ Follow / Following
-  void _toggleFollow(int index) {
-    setState(() {
-      // ดึงสถานะเดิมของผู้ใช้คนนั้นว่าติดตามอยู่หรือไม่
-      final bool wasFollowing = _friends[index]["isFollowing"];
-
-      // สลับค่า isFollowing
-      // ถ้าเดิมเป็น false จะเปลี่ยนเป็น true
-      // ถ้าเดิมเป็น true จะเปลี่ยนเป็น false
-      _friends[index]["isFollowing"] = !wasFollowing;
-
-      // อัปเดตจำนวนคนที่กำลังติดตามแบบ real-time ผ่าน FollowManager
-      if (!wasFollowing) {
-        // ถ้ายังไม่ได้ติดตาม แล้วกด Follow ให้เพิ่มจำนวน following ขึ้น 1
-        FollowManager.followingCount.value++;
-      } else {
-        // ถ้าติดตามอยู่แล้ว แล้วกดยกเลิก ให้ลดจำนวน following ลง 1
-        FollowManager.followingCount.value--;
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-
-      // AppBar ด้านบนของหน้าแนะนำเพื่อน
+      // 🌟 เปลี่ยนพื้นหลังเป็นเทาจางคุมโทนแอป
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Refer a Friend'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        title: const Text('Refer a Friend', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: const Color(0xFF2196F3),
+        elevation: 0,
+        centerTitle: true,
       ),
-
-      // แสดงรายชื่อเพื่อนแบบ ListView
-      body: ListView.builder(
-        padding: const EdgeInsets.all(8),
-        itemCount: _friends.length,
-        itemBuilder: (context, index) {
-          // ดึงข้อมูลเพื่อนแต่ละคนจาก List
-          final friend = _friends[index];
-
-          // เช็คว่าผู้ใช้คนนี้ถูกติดตามอยู่หรือไม่
-          final bool isFollowing = friend["isFollowing"];
-
-          return Card(
-            color: Colors.white,
-            elevation: 1,
-            margin: const EdgeInsets.symmetric(
-              vertical: 4,
-              horizontal: 8,
+      body: Column(
+        children: [
+          // 🌟 เพิ่มส่วนโค้งสีฟ้าด้านบนให้เหมือนหน้าอื่น
+          Container(
+            height: 15,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Color(0xFF2196F3),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+              itemCount: _friends.length,
+              itemBuilder: (context, index) {
+                final friend = _friends[index];
+                // 🌟 เช็กสถานะจริงจาก FollowManager
+                final bool isFollowing = FollowManager.isFollowing(friend["username"]);
 
-            // รายละเอียดของผู้ใช้แต่ละคน
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-
-              // รูปโปรไฟล์ของผู้ใช้
-              // ตอนนี้ใช้รูปจาก URL ตัวอย่าง
-              // ถ้าเชื่อม Firebase หรือ API แล้ว สามารถเปลี่ยนเป็น imageUrl จากฐานข้อมูลได้
-              leading: CircleAvatar(
-                radius: 25,
-                backgroundImage: NetworkImage(
-                  friend["image"],
-                ),
-              ),
-
-              // ชื่อผู้ใช้
-              title: Text(
-                friend["name"],
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              // username ของผู้ใช้
-              subtitle: Text(
-                friend["username"],
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
-              ),
-
-              // ปุ่ม Follow / Following
-              trailing: SizedBox(
-                width: 100,
-                height: 35,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _toggleFollow(index);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    // ถ้าติดตามแล้วให้ปุ่มเป็นสีเทา
-                    // ถ้ายังไม่ได้ติดตามให้ปุ่มเป็นสีฟ้า
-                    backgroundColor:
-                    isFollowing ? Colors.grey.shade200 : Colors.blue,
-                    foregroundColor:
-                    isFollowing ? Colors.black87 : Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: CircleAvatar(
+                      radius: 28,
+                      backgroundImage: NetworkImage(friend["image"]),
+                    ),
+                    title: Text(friend["name"], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    subtitle: Text(friend["username"], style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                    trailing: SizedBox(
+                      width: 100,
+                      height: 38,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // 🌟 สั่งงานผ่าน Manager และรีเฟรชหน้าจอ
+                          setState(() {
+                            FollowManager.toggleFollow(friend["username"]);
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isFollowing ? const Color(0xFFEEEEEE) : const Color(0xFF2196F3),
+                          foregroundColor: isFollowing ? Colors.black54 : Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: Text(
+                          isFollowing ? "Following" : "Follow",
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
                   ),
-
-                  // ข้อความบนปุ่ม แสดงตามสถานะการติดตาม
-                  child: Text(
-                    isFollowing ? "Following" : "Follow",
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
