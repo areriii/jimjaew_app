@@ -5,8 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:jimjaew_app/products/product_manager.dart';
 import 'package:jimjaew_app/products/shop_item_model.dart';
 import 'package:path/path.dart' as p;
-// 🌟 สำคัญ: อย่าลืม Import ไฟล์ widget แสดงรูปที่เราสร้างไว้ (ถ้าแยกไฟล์)
-// import 'package:jimjaew_app/products/product_image.dart';
 
 class ProductFormScreen extends StatefulWidget {
   final ShopItemModel? product;
@@ -37,7 +35,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _stockController = TextEditingController(text: isEditMode ? widget.product!.stock.toString() : '');
 
     if (isEditMode && widget.product!.imagePath != null) {
-      // 🌟 ทริค: basename จะช่วยดึง "ชื่อไฟล์" ออกมาเสมอ ไม่ว่าใน Firebase จะเป็น Path ยาวหรือสั้น
+
       _imageFileName = p.basename(widget.product!.imagePath!);
       _selectedCategory = widget.product!.category;
     }
@@ -51,7 +49,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     super.dispose();
   }
 
-  // ฟังก์ชันช่วยหา Path ปัจจุบัน
   Future<String?> _getFullPath(String? fileName) async {
     if (fileName == null || fileName.isEmpty) return null;
     if (fileName.startsWith('http')) return fileName;
@@ -71,7 +68,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         'name': name,
         'price': price,
         'stock': stock,
-        'imagePath': _imageFileName, // เซฟแค่ชื่อไฟล์สั้นๆ ลง Firebase
+        'imagePath': _imageFileName,
         'category': _selectedCategory,
       };
 
@@ -147,7 +144,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               ),
               const SizedBox(height: 10),
 
-              // ส่วนแสดงภาพ
               Container(
                 height: 200, width: double.infinity,
                 decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade300)),

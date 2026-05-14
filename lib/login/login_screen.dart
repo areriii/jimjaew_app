@@ -17,13 +17,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _userManager = UserManager();
   Future<void>? _loginResult;
 
-  // ฟังก์ชันล็อกอิน
   Future<void> _login(String email, String password) async {
     final result = await _userManager.login(email, password);
     if (!mounted) return;
 
     if (result != null && result.isSuccess) {
-      // ส่งค่า true กลับไปบอกหน้า Home ว่าล็อกอินสำเร็จแล้ว
+
       Navigator.pop(context, true);
     } else {
       await showDialog(
@@ -49,7 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // ดีไซน์ช่องกรอกข้อมูล
   InputDecoration customInputDecoration({required String hintText, required IconData icon}) {
     return InputDecoration(
       prefixIcon: Icon(icon, color: Colors.grey),
@@ -70,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack( // 🌟 ใช้ Stack เพื่อวางปุ่มย้อนกลับทับบนพื้นหลัง
+      body: Stack(
         children: [
           FutureBuilder(
             future: _loginResult,
@@ -88,11 +86,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         children: [
                           const SizedBox(height: 60),
-                          // โลโก้แอป ReWear
                           const Center(child: AppLogo(width: 280, height: 280)),
                           const SizedBox(height: 20),
 
-                          // ช่อง Email
+
                           TextFormField(
                             controller: _emailController,
                             decoration: customInputDecoration(hintText: "Email", icon: Icons.email_outlined),
@@ -100,7 +97,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // ช่อง Password
                           TextFormField(
                             controller: _passwordController,
                             obscureText: true,
@@ -109,7 +105,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 35),
 
-                          // ปุ่ม Login สีฟ้าสด
                           SizedBox(
                             width: double.infinity,
                             height: 55,
@@ -144,7 +139,6 @@ class _LoginScreenState extends State<LoginScreen> {
             },
           ),
 
-          // 🌟 1. ส่วนของปุ่มย้อนกลับ (Back Button)
           Positioned(
             top: 40,
             left: 15,
@@ -158,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.black87),
                   onPressed: () {
-                    // 🌟 2. คำสั่งย้อนกลับไปหน้าโฮม
+
                     Navigator.pop(context);
                   },
                 ),

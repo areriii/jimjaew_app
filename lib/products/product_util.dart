@@ -1,15 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-
-// 🔴 เช็ค Import ให้อยู่ในโฟลเดอร์ products ให้หมด
-import 'package:jimjaew_app/home_screen/product_detail_screen.dart'; // ✅ ถูก
-import 'package:jimjaew_app/home_screen/product_form_screen.dart';   // ✅ ถูก
+import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
+import 'package:jimjaew_app/home_screen/product_form_screen.dart';
 import 'package:jimjaew_app/products/product_manager.dart';
-import 'package:jimjaew_app/products/shop_item_model.dart'; // ✅ ดึงโมเดลตัวใหม่มาใช้
+import 'package:jimjaew_app/products/shop_item_model.dart';
 
 enum ProductView { list, grid }
 
-// ✅ เปลี่ยนจาก ProductModel เป็น ShopItemModel
 Widget productInGrid(List<ShopItemModel> products) {
   return Padding(
     padding: const EdgeInsets.all(8.0),
@@ -97,7 +94,6 @@ Widget productInGrid(List<ShopItemModel> products) {
   );
 }
 
-// ✅ เปลี่ยนจาก ProductModel เป็น ShopItemModel
 Widget productInList(List<ShopItemModel> products) {
   final ProductManager productManager = ProductManager();
   return ListView.builder(

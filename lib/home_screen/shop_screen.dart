@@ -1,10 +1,9 @@
-// หน้า ร้านของคุณ
+
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/products/product_manager.dart';
 import 'package:jimjaew_app/products/shop_item_model.dart';
-// 🔴 เช็ค Import ให้ตรงกับโฟลเดอร์ของคุณ
 import 'package:jimjaew_app/home_screen/product_screen.dart';
-import 'package:jimjaew_app/products/product_image.dart'; // 🌟 เรียกใช้ Widget แสดงรูปที่เราสร้างไว้
+import 'package:jimjaew_app/products/product_image.dart';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -79,7 +78,6 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  // --- ส่วนวาดการ์ดสินค้า (แก้ไขจุดแสดงรูปภาพ) ---
   Widget _buildProductCard(ShopItemModel product) {
     return Card(
       elevation: 1,
@@ -92,7 +90,6 @@ class _ShopScreenState extends State<ShopScreen> {
             child: Container(
               width: double.infinity,
               color: Colors.grey.shade100,
-              // 🌟 เปลี่ยนจาก Image.network เป็น ProductImage เพื่อให้รูปติดถาวร
               child: ProductImage(
                 imagePath: product.imagePath,
               ),

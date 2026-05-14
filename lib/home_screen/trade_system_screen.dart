@@ -3,7 +3,6 @@ import 'package:jimjaew_app/home_screen/seller_order_screen.dart';
 import 'package:jimjaew_app/home_screen/income_screen.dart';
 import 'package:jimjaew_app/products/order_manager.dart';
 
-// หน้า ระบบ เทรด
 class TradeSystemScreen extends StatefulWidget {
   const TradeSystemScreen({super.key});
 
@@ -14,7 +13,6 @@ class TradeSystemScreen extends StatefulWidget {
 class _TradeSystemScreenState extends State<TradeSystemScreen> {
   final OrderManager _orderManager = OrderManager();
 
-  // ฟังก์ชันอนุมัติรายการเทรด แล้วอัปเดตสถานะขึ้น Firebase
   void _approveTrade(TradeModel item) {
     double finalPrice = item.originalPrice - item.discount;
 
@@ -63,13 +61,11 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
             onPressed: () async {
               Navigator.pop(context);
 
-              // เปลี่ยนสถานะใน Firebase เป็นภาษาอังกฤษ
               await _orderManager.updateTradeStatus(
                 item.id,
                 'Approved',
               );
 
-              // เพิ่มรายการขายเข้าไปยังรายได้ของร้าน
               await _orderManager.addOrder(
                 "Trade Sale: ${item.name}",
                 finalPrice,
@@ -98,7 +94,6 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
     );
   }
 
-  // แปลงสถานะภาษาไทยเดิมใน Firebase ให้แสดงเป็นภาษาอังกฤษบนหน้าจอ
   String _getDisplayStatus(String status) {
     if (status == 'อนุมัติแล้ว') {
       return 'Approved';
@@ -111,7 +106,6 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
     }
   }
 
-  // กำหนดสีของสถานะตามข้อความที่แสดง
   Color _getStatusColor(String status) {
     final displayStatus = _getDisplayStatus(status);
 
@@ -124,7 +118,6 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
     }
   }
 
-  // ตรวจสอบว่าสถานะนี้ยังรอการตรวจสอบอยู่หรือไม่
   bool _isPendingStatus(String status) {
     return status == 'Pending' || status == 'รอตรวจสอบ';
   }
@@ -140,7 +133,6 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
       ),
       body: Column(
         children: [
-          // ปุ่มลัดสำหรับไปยังหน้าออเดอร์ลูกค้าและหน้ารายได้ของร้าน
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.white,
@@ -171,7 +163,6 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
 
           const SizedBox(height: 16),
 
-          // หัวข้อรายการเทรด
           const Padding(
             padding: EdgeInsets.symmetric(
               horizontal: 16.0,
@@ -189,7 +180,6 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
             ),
           ),
 
-          // ดึงข้อมูลรายการเทรดจาก Firebase
           Expanded(
             child: StreamBuilder<List<TradeModel>>(
               stream: _orderManager.getTradesStream(),
@@ -285,7 +275,6 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
         ],
       ),
 
-      // ปุ่มเพิ่มข้อมูลเทรดตัวอย่างเข้า Firebase
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await _orderManager.addTradeRequest(
@@ -320,7 +309,6 @@ class _TradeSystemScreenState extends State<TradeSystemScreen> {
     );
   }
 
-  // สร้างปุ่มลัดด้านบนของหน้า
   Widget _buildShortcutButton(
       BuildContext context,
       String title,

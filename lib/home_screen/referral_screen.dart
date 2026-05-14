@@ -9,7 +9,7 @@ class ReferralScreen extends StatefulWidget {
 }
 
 class _ReferralScreenState extends State<ReferralScreen> {
-  // ข้อมูลเพื่อนจำลอง (เอาค่า isFollowing ออก เพราะเราจะไปเช็กจาก Manager แทน)
+
   final List<Map<String, dynamic>> _friends = [
     {"name": "Somchai Jaidee", "username": "@somchai_dev", "image": "https://i.pravatar.cc/150?img=11"},
     {"name": "Mana Pakpian", "username": "@mana_coder", "image": "https://i.pravatar.cc/150?img=12"},
@@ -21,7 +21,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 🌟 เปลี่ยนพื้นหลังเป็นเทาจางคุมโทนแอป
+
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('Refer a Friend', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
@@ -31,7 +31,6 @@ class _ReferralScreenState extends State<ReferralScreen> {
       ),
       body: Column(
         children: [
-          // 🌟 เพิ่มส่วนโค้งสีฟ้าด้านบนให้เหมือนหน้าอื่น
           Container(
             height: 15,
             width: double.infinity,
@@ -46,7 +45,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
               itemCount: _friends.length,
               itemBuilder: (context, index) {
                 final friend = _friends[index];
-                // 🌟 เช็กสถานะจริงจาก FollowManager
+
                 final bool isFollowing = FollowManager.isFollowing(friend["username"]);
 
                 return Container(
@@ -69,7 +68,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                       height: 38,
                       child: ElevatedButton(
                         onPressed: () {
-                          // 🌟 สั่งงานผ่าน Manager และรีเฟรชหน้าจอ
+
                           setState(() {
                             FollowManager.toggleFollow(friend["username"]);
                           });

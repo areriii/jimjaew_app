@@ -32,7 +32,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             final data = doc.data() as Map<String, dynamic>;
             subtotal += (data['price'] ?? 0) * (data['quantity'] ?? 1);
           }
-          double total = subtotal + 50.0; // รวมค่าส่ง
+          double total = subtotal + 50.0;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -67,7 +67,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // --- Widget ส่วนประกอบต่างๆ ---
   Widget _buildTitle(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -126,24 +125,57 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     ),
   );
 
-  // ฟังก์ชันชำระเงิน
   void _processPayment(List<QueryDocumentSnapshot> docs, double total) async {
     for (var doc in docs) {
       final data = doc.data() as Map<String, dynamic>;
+      final String productId = data['productId'];
+      final int quantity = data['quantity'];
+      final productRef = FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId);
+      final productSnapshot = await productRef.get();
+      if (!productSnapshot.exists) continue;
+      final productData = productSnapshot.data()!;
+      int currentStock = productData['stock'] ?? 0;
+      if (currentStock < quantity) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${data['productName']} สินค้าไม่พอ',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+      await productRef.update({
+        'stock': currentStock - quantity,
+      });
       await FirebaseFirestore.instance.collection('orders').add({
+        'productId': productId,
         'productName': data['productName'],
         'price': data['price'],
-        'quantity': data['quantity'],
+        'quantity': quantity,
         'totalPrice': total,
         'status': 'In Delivery',
         'paymentMethod': _selectedPayment,
         'orderDate': Timestamp.now(),
         'imagePath': data['imagePath'],
       });
-      await FirebaseFirestore.instance.collection('cart').doc(doc.id).delete();
+      await FirebaseFirestore.instance
+          .collection('cart')
+          .doc(doc.id)
+          .delete();
     }
     if (mounted) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  OrderScreen()));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderScreen(),
+        ),
+      );
     }
   }
 }

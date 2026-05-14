@@ -7,30 +7,27 @@ import 'package:jimjaew_app/products/product_image.dart';
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
-  // 🌟 กำหนดสีหลักให้ตรงกันทั้งแอป
   final Color primaryBlue = const Color(0xFF2196F3);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      // 1. ปรับแต่ง AppBar ให้ดูคลีนและเชื่อมกับส่วนโค้ง
       appBar: AppBar(
         title: const Text(
             "Shopping Cart",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)
         ),
         backgroundColor: primaryBlue,
-        elevation: 0, // 🌟 ลบเงาออกเพื่อให้เชื่อมกับส่วนโค้งได้เนียน
+        elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
-          // 🌟 2. เพิ่มส่วนโค้งสีฟ้าด้านบน (เหมือนหน้า Categories)
           Container(
-            height: 20, // ความสูงของส่วนโค้งที่ยื่นลงมา
+            height: 20,
             width: double.infinity,
             decoration: BoxDecoration(
               color: primaryBlue,
@@ -43,12 +40,11 @@ class CartScreen extends StatelessWidget {
               stream: FirebaseFirestore.instance.collection('cart').snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return _buildEmptyCart(); // แยกฟังก์ชันเพื่อให้โค้ดสะอาด
+                  return _buildEmptyCart();
                 }
 
                 final cartItems = snapshot.data!.docs;
 
-                // คำนวณราคารวม
                 double totalAmount = 0;
                 for (var doc in cartItems) {
                   final data = doc.data() as Map<String, dynamic>;
@@ -77,7 +73,6 @@ class CartScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // แถบสรุปยอดด้านล่าง (ดีไซน์พรีเมียม)
                     _buildBottomSummary(context, totalAmount),
                   ],
                 );
@@ -89,7 +84,6 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  // --- Widget ย่อย: รายการสินค้าแต่ละชิ้น ---
   Widget _buildCartItem(BuildContext context, String docId, String name, String path, double price, int qty) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -144,7 +138,6 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  // --- Widget ย่อย: สรุปราคารวมและปุ่ม Checkout ---
   Widget _buildBottomSummary(BuildContext context, double total) {
     return Container(
       padding: const EdgeInsets.all(25),
@@ -181,7 +174,6 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  // --- Widget ย่อย: หน้าตอนไม่มีสินค้า ---
   Widget _buildEmptyCart() {
     return Center(
       child: Column(
@@ -195,7 +187,6 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  // Helper สร้างปุ่มเพิ่มลดจำนวน
   Widget _buildQtyBtn(IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,

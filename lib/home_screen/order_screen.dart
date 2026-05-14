@@ -1,6 +1,3 @@
-// คำสั่งซื้อของฉัน
-// หน้านี้ใช้สำหรับแสดงรายการสินค้าที่ผู้ใช้สั่งซื้อ
-// ผู้ใช้สามารถยกเลิกคำสั่งซื้อ หรือกดยืนยันว่าได้รับสินค้าแล้วได้
 
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/products/order_manager.dart';
@@ -38,7 +35,6 @@ class OrderScreen extends StatelessWidget {
     return Colors.orange;
   }
 
-  // 🌟 ฟังก์ชันแสดง Pop-up (เขียนให้ใช้ dialogContext ป้องกันการเด้งผิดหน้า)
   void _showCancelDialog(BuildContext context, String orderId, String name) {
     showDialog(
       context: context,
@@ -46,27 +42,23 @@ class OrderScreen extends StatelessWidget {
         title: const Text("Cancel Order?"),
         content: Text("Are you sure you want to cancel '$name'?"),
         actions: [
-          // ปุ่ม No
           TextButton(
             onPressed: () {
-              Navigator.pop(dialogContext); // ปิดแค่ Pop-up
+              Navigator.pop(dialogContext);
             },
             child: const Text("No", style: TextStyle(color: Colors.grey)),
           ),
-          // ปุ่ม Yes, Cancel
+
           TextButton(
             onPressed: () async {
-              // 1. อัปเดตสถานะใน Firebase ทันที
               await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
                 'status': 'Cancelled',
               });
 
-              // 2. ปิดแค่ Pop-up
               if (dialogContext.mounted) {
                 Navigator.pop(dialogContext);
               }
 
-              // 3. โชว์ข้อความว่ายกเลิกสำเร็จ (ใช้ context ของหน้าหลัก)
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -174,12 +166,11 @@ class OrderScreen extends StatelessWidget {
                       ),
                       const Divider(),
 
-                      // 🌟 แถบปุ่มด้านล่างของการ์ด
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           if (_isInDelivery(orderData['status'] ?? '')) ...[
-                            // 🌟 ปุ่ม Cancel (แก้ไขให้เรียก Pop-up ถูกต้อง)
+
                             TextButton(
                               onPressed: () {
                                 _showCancelDialog(context, orderId, orderData['productName'] ?? 'this item');
@@ -189,7 +180,6 @@ class OrderScreen extends StatelessWidget {
 
                             const SizedBox(width: 8),
 
-                            // 🌟 ปุ่ม I Received the Product
                             ElevatedButton(
                               onPressed: () async {
                                 await FirebaseFirestore.instance.collection('orders').doc(orderId).update({

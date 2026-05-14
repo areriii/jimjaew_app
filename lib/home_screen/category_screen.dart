@@ -1,4 +1,3 @@
-// หมวดหมู่สินค้า - ปรับปรุงโทนสี Bright Blue
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:jimjaew_app/products/product_image.dart';
@@ -28,7 +27,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ProductManager _productManager = ProductManager();
 
-  // 🌟 กำหนดสีหลัก (Bright Blue เหมือนหน้า Income)
   final Color primaryBlue = const Color(0xFF2196F3);
 
   @override
@@ -40,18 +38,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 🌟 เปลี่ยนพื้นหลังเป็นสีเทาจางๆ เพื่อให้ Card ขาวดูเด่น
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text("Categories", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: primaryBlue, // 🌟 สีฟ้าสด
+        backgroundColor: primaryBlue,
         elevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: true,
       ),
       body: Column(
         children: [
-          // ส่วนช่องค้นหา (พื้นหลังฟ้าอ่อนไล่เฉด)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -60,7 +56,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white, // 🌟 ช่องค้นหาสีขาว
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
@@ -79,7 +75,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // แถบเลือกหมวดหมู่ด้านซ้าย
                 Container(
                   width: 100,
                   color: Colors.white,
@@ -92,7 +87,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         onTap: () => widget.onCategorySelect(isSelected ? "" : category["label"]),
                         child: Container(
                           decoration: BoxDecoration(
-                            // 🌟 ถ้าเลือก ให้เป็นสีฟ้าอ่อนจางๆ
                             color: isSelected ? const Color(0xFFE3F2FD) : Colors.white,
                             border: Border(
                                 left: BorderSide(
@@ -117,7 +111,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 ),
 
-                // รายการสินค้าด้านขวา
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance.collection('products').snapshots(),
@@ -146,7 +139,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         itemBuilder: (context, index) {
                           final realProduct = filteredRealProducts[index];
                           return CategoryProductCard(
-                            product: realProduct, // 🌟 ส่งตัวแปรเดียวจบ
+                            product: realProduct,
                             onFavoriteToggle: () => _productManager.toggleFavorite(realProduct.id, realProduct.isFavorite),
                           );
                         },
@@ -163,7 +156,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
   }
 }
 
-// 🌟 ปรับปรุงการ์ดสินค้าให้มีความโค้งมนและเงา (Soft Shadow)
 class CategoryProductCard extends StatelessWidget {
   final ShopItemModel product;
   final VoidCallback onFavoriteToggle;

@@ -137,7 +137,6 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   Widget _buildHomePage() {
     return Column(
       children: [
-        // 🌟 1. ส่วนหัวพร้อมช่องค้นหา (Search Bar)
         _buildGradientHeader(),
 
         Expanded(
@@ -146,13 +145,12 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             children: [
               _buildCategorySection(),
               const SizedBox(height: 20),
-              // แสดงหัวข้อตามการเลือกหมวดหมู่
               Text(
                 selectedCategory != null ? "Category: $selectedCategory" : "Recent Products",
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D2D2D)),
               ),
               const SizedBox(height: 15),
-              // 🌟 2. แสดงกริตสินค้าพร้อมระบบกรอง (Filtering)
+
               _buildProductGrid(null),
             ],
           ),
@@ -171,7 +169,6 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const Center(child: Text("No products found"));
 
-        // 🌟 3. ตรรกะการกรองข้อมูลตามหมวดหมู่และการค้นหา
         final filteredProducts = snapshot.data!.docs.map((doc) => ShopItemModel.fromFirestore(doc)).where((p) {
           final matchSearch = _searchController.text.isEmpty || p.name.toLowerCase().contains(_searchController.text.toLowerCase());
           final matchCat = onlyFavorite == true ? true : (selectedCategory == null || p.category == selectedCategory);
@@ -181,14 +178,14 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         if (filteredProducts.isEmpty) return const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No products match your search")));
 
         return GridView.builder(
-          shrinkWrap: true, // ป้องกันเลย์เอาต์หาย
-          physics: const NeverScrollableScrollPhysics(), // เลื่อนไปกับหน้าหลัก
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: filteredProducts.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 15, mainAxisSpacing: 15, childAspectRatio: 0.65),
           itemBuilder: (context, index) {
             final product = filteredProducts[index];
             return GestureDetector(
-              // 🌟 4. กดที่รูปแล้วไปหน้ารายละเอียดสินค้า
+
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProductDetailScreen(product: product))),
               child: ProductCard(
                 product: product,
@@ -227,7 +224,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             ],
           ),
           const SizedBox(height: 25),
-          // 🔍 ช่องค้นหาที่หายไป (เพิ่มกลับมาให้แล้ว)
+
           Container(
             height: 52, padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: const Offset(0, 5))]),
@@ -238,7 +235,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                 Expanded(
                     child: TextField(
                         controller: _searchController,
-                        onChanged: (_) => setState(() {}), // รีเฟรชกริตเมื่อพิมพ์
+                        onChanged: (_) => setState(() {}),
                         decoration: const InputDecoration(hintText: "Search for products...", border: InputBorder.none)
                     )
                 ),

@@ -1,6 +1,3 @@
-// หน้าคำสั่งซื้อจากลูกค้า
-// หน้านี้ใช้สำหรับให้ร้านค้าดูรายการออเดอร์จากลูกค้าแบบ real-time
-// และมีปุ่มสำหรับไปยังหน้าสรุปรายได้ของร้าน
 
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/products/order_manager.dart';
@@ -9,7 +6,6 @@ import 'package:jimjaew_app/home_screen/income_screen.dart';
 class SellerOrderScreen extends StatelessWidget {
   SellerOrderScreen({super.key});
 
-  // ใช้สำหรับเรียกข้อมูลคำสั่งซื้อจาก Firebase
   final OrderManager _orderManager = OrderManager();
 
   @override
@@ -17,7 +13,6 @@ class SellerOrderScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
 
-      // AppBar ด้านบนของหน้าคำสั่งซื้อ
       appBar: AppBar(
         title: const Text('Customer Orders'),
         backgroundColor: Colors.blue,
@@ -26,14 +21,14 @@ class SellerOrderScreen extends StatelessWidget {
 
       body: Column(
         children: [
-          // ปุ่มด้านบนสำหรับไปยังหน้าสรุปรายได้ของร้าน
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             color: Colors.white,
             child: ElevatedButton.icon(
               onPressed: () {
-                // เมื่อกดปุ่มนี้ จะไปยังหน้า IncomeScreen
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -67,21 +62,18 @@ class SellerOrderScreen extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // ส่วนแสดงรายการคำสั่งซื้อจากลูกค้าแบบ real-time
           Expanded(
             child: StreamBuilder<List<OrderModel>>(
-              // ดึงรายการคำสั่งซื้อจาก Firebase ผ่าน OrderManager
               stream: _orderManager.getOrdersStream(),
 
               builder: (context, snapshot) {
-                // กรณีที่ระบบกำลังโหลดข้อมูลจาก Firebase
+
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
 
-                // กรณีไม่มีข้อมูลคำสั่งซื้อ
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
                     child: Text(
@@ -93,16 +85,13 @@ class SellerOrderScreen extends StatelessWidget {
                   );
                 }
 
-                // เก็บข้อมูลออเดอร์ทั้งหมดที่ดึงมาจาก Firebase
                 final orders = snapshot.data!;
 
-                // แสดงรายการคำสั่งซื้อเป็น ListView
                 return ListView.builder(
                   itemCount: orders.length,
                   itemBuilder: (context, index) {
                     final order = orders[index];
 
-                    // แปลงวันที่จาก Timestamp ให้เป็นวันที่ที่อ่านง่าย
                     final date = order.createdAt.toDate();
 
                     final dateString =
@@ -117,7 +106,6 @@ class SellerOrderScreen extends StatelessWidget {
                       color: Colors.white,
                       elevation: 1,
                       child: ListTile(
-                        // Icon ด้านซ้ายของรายการคำสั่งซื้อ
                         leading: const CircleAvatar(
                           backgroundColor: Color(0xFFFFF3E0),
                           child: Icon(
@@ -126,7 +114,6 @@ class SellerOrderScreen extends StatelessWidget {
                           ),
                         ),
 
-                        // ชื่อสินค้าที่ลูกค้าสั่งซื้อ
                         title: Text(
                           order.productName,
                           style: const TextStyle(
@@ -134,7 +121,6 @@ class SellerOrderScreen extends StatelessWidget {
                           ),
                         ),
 
-                        // วันที่และเวลาที่สั่งซื้อ
                         subtitle: Text(
                           "Ordered on: $dateString",
                           style: const TextStyle(
@@ -142,7 +128,6 @@ class SellerOrderScreen extends StatelessWidget {
                           ),
                         ),
 
-                        // ราคาหรือยอดรวมของคำสั่งซื้อ
                         trailing: Text(
                           "+ ฿${order.totalPrice}",
                           style: const TextStyle(

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:jimjaew_app/model/login_model.dart';
-import 'package:jimjaew_app/model/register_model.dart'; // ตรวจสอบชื่อไฟล์ model ให้ถูกต้อง
+import 'package:jimjaew_app/model/register_model.dart';
 
 class UserManager {
   static final UserManager _instance = UserManager._();
@@ -25,7 +25,6 @@ class UserManager {
     currentLastName = null;
   }
 
-  // 🌟 Login
   Future<LoginResponseModel?> login(String email, String password) async {
     final url = Uri.parse('$_baseUrl/account/v1/login');
     try {
@@ -46,7 +45,6 @@ class UserManager {
     } catch (e) { return null; }
   }
 
-  // 🌟 Register (ปรับปรุงให้จำข้อมูลผู้ใช้ทันที)
   Future<RegisterModel?> register(String firstName, String lastName, String email, String password, String username) async {
     final url = Uri.parse('$_baseUrl/account/v1/register');
 
@@ -64,12 +62,11 @@ class UserManager {
       ).timeout(const Duration(seconds: 10));
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        final result = RegisterModel.fromJson(jsonDecode(resp.body)); // [cite: 25]
+        final result = RegisterModel.fromJson(jsonDecode(resp.body));
 
-        // 🌟 บันทึกข้อมูลเข้าตัวแปรส่วนกลางทันที เพื่อให้หน้า Profile มีข้อมูลโชว์
-        currentEmail = email; // [cite: 25]
-        currentFirstName = firstName; // [cite: 26]
-        currentLastName = lastName; // [cite: 26]
+        currentEmail = email;
+        currentFirstName = firstName;
+        currentLastName = lastName;
 
         return result;
       } else {

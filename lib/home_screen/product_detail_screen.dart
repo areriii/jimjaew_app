@@ -1,5 +1,3 @@
-// หน้ากดซื้อสินค้า (ProductDetailScreen)
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/home_screen/cart_screen.dart';
@@ -17,7 +15,7 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  // 🌟 กำหนดสีหลักไว้ที่นี่เพื่อให้แก้ง่าย
+
   final Color primaryBlue = const Color(0xFF2196F3);
 
   @override
@@ -25,11 +23,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final item = widget.product;
 
     return Scaffold(
-      // 1. 🎨 เปลี่ยนพื้นหลังให้ขาวนวลขึ้น
+
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        // 2. 🎨 เปลี่ยนสี AppBar เป็นฟ้าสด
+
         backgroundColor: primaryBlue,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -45,15 +43,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       body: ListView(
         children: [
-          // ส่วนรูปภาพ
+
           Container(
             height: 350,
             width: double.infinity,
-            color: Colors.white, // เปลี่ยนเป็นสีขาวเพื่อให้รูปดูสะอาด
+            color: Colors.white,
             child: ProductImage(imagePath: item.imagePath),
           ),
 
-          // ส่วนรายละเอียด
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -70,7 +67,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Text(
                       "฿${item.price.toStringAsFixed(2)}",
                       style: TextStyle(
-                        // 3. 🎨 เปลี่ยนสีราคาเป็นฟ้าสด
                         color: primaryBlue,
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
@@ -139,7 +135,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
 
-      // 4. 🎨 ปุ่มด้านล่าง
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -153,16 +148,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           height: 55,
           child: ElevatedButton.icon(
             onPressed: item.stock > 0 ? () async {
-              // ... โค้ด Firebase เหมือนเดิม ...
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('กำลังเพิ่มลงตะกร้า...')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('กำลังเพิ่มลงตะกร้า...')),
+              );
               final cartRef = FirebaseFirestore.instance.collection('cart');
-              final snapshot = await cartRef.where('productName', isEqualTo: widget.product.name).get();
+              final snapshot = await cartRef
+                  .where('productId', isEqualTo: widget.product.id)
+                  .get();
               if (snapshot.docs.isNotEmpty) {
                 final docId = snapshot.docs.first.id;
                 final currentQty = snapshot.docs.first.data()['quantity'] ?? 1;
-                await cartRef.doc(docId).update({'quantity': currentQty + 1});
+                if (currentQty >= item.stock) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('จำนวนสินค้าเกินสต็อก'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                await cartRef.doc(docId).update({
+                  'quantity': currentQty + 1,
+                });
               } else {
                 await cartRef.add({
+                  'productId': widget.product.id,
                   'productName': widget.product.name,
                   'price': widget.product.price,
                   'imagePath': widget.product.imagePath ?? '',
@@ -171,7 +181,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               }
               if (context.mounted) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('เพิ่มลงตะกร้าสำเร็จ!'), backgroundColor: Colors.green));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('เพิ่มลงตะกร้าสำเร็จ!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               }
             } : null,
             icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
@@ -180,7 +195,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)
             ),
             style: ElevatedButton.styleFrom(
-              // 🎨 เปลี่ยนเป็นสีฟ้าสดตรงนี้ครับ
               backgroundColor: item.stock > 0 ? primaryBlue : Colors.grey,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               elevation: 0,

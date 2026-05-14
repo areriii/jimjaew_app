@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/user/user_manager.dart';
-import 'package:jimjaew_app/login/login_screen.dart'; // เช็คที่อยู่โฟลเดอร์ให้ตรงกับของคุณด้วยนะครับ
+import 'package:jimjaew_app/login/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,7 +14,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _usernameController = TextEditingController(); // 🌟 เปลี่ยนกลับมาเป็นตัวแปร Username
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -30,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      // 🌟 ส่งค่า Username ไปให้ UserManager จัดการ
+
       final result = await _userManager.register(
         _firstNameController.text.trim(),
         _lastNameController.text.trim(),
@@ -42,12 +42,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       if (result != null && result.isSuccess) {
-        // 🌟 แก้ข้อความให้รู้ว่าต้องล็อคอินต่อ
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Register successful. Please login."), backgroundColor: Colors.green),
         );
 
-        // 🌟 แก้ตรงนี้! เตะไปหน้า Login ทันทีที่สมัครเสร็จ
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -130,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     validator: (value) => value == null || value.trim().isEmpty ? "Please enter your last name" : null,
                   ),
                   const SizedBox(height: 14),
-                  // 🌟 เปลี่ยน UI กลับมาโชว์คำว่า Username ให้ผู้ใช้เห็น
+
                   TextFormField(
                     controller: _usernameController,
                     enabled: !_isLoading,

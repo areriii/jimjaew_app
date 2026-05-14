@@ -1,11 +1,6 @@
-// หน้าสินค้าทั้งหมด
-// หน้านี้ใช้สำหรับแสดงสินค้าทั้งหมดในรูปแบบ GridView
-// เมื่อกดที่สินค้า จะไปยังหน้ารายละเอียดสินค้า
-
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/home_screen/product_detail_screen.dart';
 import 'package:jimjaew_app/products/shop_item_model.dart';
-// 🌟 1. Import ตัวแสดงรูปที่เราสร้างไว้ใหม่ครับ
 import 'package:jimjaew_app/products/product_image.dart';
 
 class AllProductsScreen extends StatelessWidget {
@@ -39,7 +34,7 @@ class AllProductsScreen extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 18,
             mainAxisSpacing: 18,
-            childAspectRatio: 0.62, // 🌟 ปรับสัดส่วนให้พอดีกับรูปภาพและข้อความ
+            childAspectRatio: 0.62,
           ),
           itemBuilder: (context, index) {
             final product = products[index];
@@ -55,7 +50,7 @@ class AllProductsScreen extends StatelessWidget {
                         name: product["name"] ?? "No Name",
                         price: double.tryParse(product["price"].toString()) ?? 0.0,
                         stock: 10,
-                        imagePath: product["image"], // ส่งค่า Path ไปหน้ารายละเอียด
+                        imagePath: product["image"],
                         category: 'Shirt',
                       ),
                     ),
@@ -67,7 +62,6 @@ class AllProductsScreen extends StatelessWidget {
                 price: product["price"] ?? "",
                 rating: product["rating"] ?? 0,
                 isFavorite: product["favorite"] ?? false,
-                // 🌟 2. เปลี่ยนชื่อจาก imageUrl เป็น imagePath
                 imagePath: product["image"] ?? "",
                 onFavoriteToggle: () {
                   product["favorite"] = !(product["favorite"] ?? false);
@@ -81,7 +75,6 @@ class AllProductsScreen extends StatelessWidget {
   }
 }
 
-// 🌟 3. ProductCard ตัวใหม่ที่ใช้ ProductImage ในการแสดงผล
 class ProductCard extends StatelessWidget {
   final String name;
   final String price;
@@ -121,7 +114,6 @@ class ProductCard extends StatelessWidget {
                   child: SizedBox(
                     width: double.infinity,
                     height: double.infinity,
-                    // 🌟 เรียกใช้ตัวช่วยแสดงรูปภาพ
                     child: ProductImage(imagePath: imagePath),
                   ),
                 ),

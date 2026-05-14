@@ -41,7 +41,6 @@ class ProductImage extends StatelessWidget {
           return Image.file(file, width: width, height: height, fit: BoxFit.cover);
         }
 
-        // ถ้าหาไม่เจอจริงๆ ให้โชว์ไอคอนแจ้งเตือน
         return const Icon(Icons.broken_image, color: Colors.orange);
       },
     );

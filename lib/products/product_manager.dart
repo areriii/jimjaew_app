@@ -1,8 +1,6 @@
 
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-// 🔹 เปลี่ยนมา Import ไฟล์ชื่อใหม่
 import 'package:jimjaew_app/products/shop_item_model.dart';
 
 class ProductManager {
@@ -23,7 +21,6 @@ class ProductManager {
     }
   }
 
-  // 🌟 1. ฟังก์ชันเดิม: ดึงสินค้า "ทั้งหมด" (เอาไว้โชว์ในหน้าจัดการสินค้า)
   Stream<List<ShopItemModel>> getProductsStream() {
     return _productCollection
         .orderBy('created_at', descending: true)
@@ -33,11 +30,9 @@ class ProductManager {
     });
   }
 
-  // 🌟 2. ฟังก์ชันใหม่: ดึงสินค้า "แยกตามหมวดหมู่" (เอาไว้โชว์เวลาคลิกวงกลมหมวดหมู่)
   Stream<List<ShopItemModel>> getProductsByCategoryStream(String category) {
     return _productCollection
-        .where('category', isEqualTo: category) // กรองเฉพาะหมวดหมู่
-    // (เอา orderBy ออกชั่วคราว เพื่อป้องกัน Error จากระบบ Firebase Index)
+        .where('category', isEqualTo: category)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) => ShopItemModel.fromFirestore(doc)).toList();
@@ -60,10 +55,10 @@ class ProductManager {
       debugPrint('Failed to delete product: $e');
     }
   }
-  // เพิ่มเข้าไปในคลาส ProductManager
+
   Future<void> toggleFavorite(String productId, bool currentStatus) async {
     await _productCollection.doc(productId).update({
-      'isFavorite': !currentStatus, // สลับค่าเป็นตรงกันข้าม
+      'isFavorite': !currentStatus,
     });
   }
 }

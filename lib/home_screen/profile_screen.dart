@@ -1,4 +1,4 @@
-// หน้าบัญชีผู้ใช้ (ProfileScreen) - ฉบับรวม Logic ระบบ Login และดีไซน์ Bright Blue
+
 import 'package:flutter/material.dart';
 import 'package:jimjaew_app/home_screen/help_center_screen.dart';
 import 'package:jimjaew_app/home_screen/order_screen.dart';
@@ -21,13 +21,12 @@ class ProfileScreen extends StatelessWidget {
     this.email,
   });
 
-  // 🌟 กำหนดสีหลักเพื่อให้คุมโทน Bright Blue ทั้งแอป
   final Color primaryBlue = const Color(0xFF2196F3);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // พื้นหลังเทาจางๆ เพื่อให้ Card เมนูสีขาวดูเด่นขึ้น
+
       backgroundColor: const Color(0xFFF8F9FA),
       body: SingleChildScrollView(
         child: Column(
@@ -42,16 +41,13 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ส่วนหัวของหน้า Profile แบบ Gradient พร้อมดึงข้อมูลจาก UserManager [cite: 5, 292]
   Widget _buildProfileHeader(BuildContext context) {
     final userManager = UserManager();
 
-    // ดึง Email: ใช้ค่าที่ส่งเข้ามาก่อน ถ้าไม่มีให้ใช้จาก UserManager [cite: 5, 288, 289]
     final String displayEmail = (email != null && email!.isNotEmpty)
         ? email!
         : (userManager.currentEmail ?? 'No email');
 
-    // ดึงชื่อ: ใช้ค่าที่ส่งเข้ามาก่อน ถ้าไม่มีให้รวมชื่อจาก UserManager [cite: 5, 290]
     final String displayName = (username != null && username!.isNotEmpty)
         ? username!
         : [userManager.currentFirstName, userManager.currentLastName]
@@ -76,7 +72,6 @@ class ProfileScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () {
-                  // กลับหน้า Home โดยตรวจสอบ back stack [cite: 293, 294, 295]
                   if (Navigator.canPop(context)) {
                     Navigator.pop(context);
                   } else {
@@ -93,7 +88,6 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              // รูปโปรไฟล์แบบ CircleAvatar [cite: 297, 298]
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -106,7 +100,6 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 20),
-              // ข้อมูลชื่อและอีเมล [cite: 303, 304]
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,7 +116,6 @@ class ProfileScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 12),
-                    // ส่วนแสดงสถิติ Followers / Following [cite: 305, 306, 312, 313]
                     Row(
                       children: [
                         _buildStatColumn("0", "Followers"),
@@ -159,7 +151,7 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // กล่องเมนูหลักแบบการ์ดโค้งมน [cite: 322]
+
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -179,7 +171,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 15),
-          // เมนู Help Center [cite: 334]
+
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -189,7 +181,7 @@ class ProfileScreen extends StatelessWidget {
             child: _buildListTile(Icons.help_outline, 'Help Center', primaryBlue, () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpCenterScreen()))),
           ),
           const SizedBox(height: 30),
-          // ปุ่ม Log Out [cite: 339, 341]
+
           SizedBox(
             width: double.infinity,
             height: 55,
@@ -218,7 +210,6 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildDivider() => const Divider(height: 1, thickness: 0.5, indent: 55, endIndent: 20, color: Color(0xFFEEEEEE));
 
-  // แถบเมนูด้านล่างพร้อม Logic การนำทาง [cite: 346, 347, 348, 349, 350]
   Widget _buildBottomNavigationBar(BuildContext context) {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
@@ -227,7 +218,7 @@ class ProfileScreen extends StatelessWidget {
       currentIndex: 3,
       onTap: (index) {
         if (index == 0) {
-          // ปลอดภัยกว่าด้วยการเช็ก back stack
+
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
           } else {
@@ -246,7 +237,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Dialog ยืนยันการออกจากระบบพร้อมสั่งงาน UserManager [cite: 354, 356, 357, 358]
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -257,10 +247,10 @@ class ProfileScreen extends StatelessWidget {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
-              Navigator.pop(ctx); // ปิด Dialog
-              await UserManager().logout(); // เคลียร์ข้อมูล Singleton [cite: 8, 9, 356]
+              Navigator.pop(ctx);
+              await UserManager().logout();
               if (context.mounted) {
-                // กลับไปหน้า Home และล้าง stack ทั้งหมด [cite: 358]
+
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (c) => const ShopHomeScreen()),
